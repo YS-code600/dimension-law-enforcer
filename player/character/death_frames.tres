@@ -1,0 +1,123 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://clldttq0pvixd"]
+
+[ext_resource type="Texture2D" uid="uid://cws2fcg7ux0s3" path="res://player/character/death.png" id="1_death"]
+
+[sub_resource type="AtlasTexture" id="Atlas_death_0"]
+atlas = ExtResource("1_death")
+region = Rect2(0, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_1"]
+atlas = ExtResource("1_death")
+region = Rect2(66, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_2"]
+atlas = ExtResource("1_death")
+region = Rect2(132, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_3"]
+atlas = ExtResource("1_death")
+region = Rect2(198, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_4"]
+atlas = ExtResource("1_death")
+region = Rect2(264, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_5"]
+atlas = ExtResource("1_death")
+region = Rect2(330, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_6"]
+atlas = ExtResource("1_death")
+region = Rect2(396, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_7"]
+atlas = ExtResource("1_death")
+region = Rect2(462, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_8"]
+atlas = ExtResource("1_death")
+region = Rect2(528, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_9"]
+atlas = ExtResource("1_death")
+region = Rect2(594, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_10"]
+atlas = ExtResource("1_death")
+region = Rect2(660, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_11"]
+atlas = ExtResource("1_death")
+region = Rect2(726, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_12"]
+atlas = ExtResource("1_death")
+region = Rect2(792, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_13"]
+atlas = ExtResource("1_death")
+region = Rect2(858, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_14"]
+atlas = ExtResource("1_death")
+region = Rect2(924, 0, 66, 66)
+
+[sub_resource type="AtlasTexture" id="Atlas_death_15"]
+atlas = ExtResource("1_death")
+region = Rect2(990, 0, 66, 66)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Atlas_death_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_8")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_9")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_10")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_11")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_12")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_13")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_14")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_death_15")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 12.0
+}]

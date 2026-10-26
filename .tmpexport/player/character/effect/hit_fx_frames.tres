@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://player/character/effect/hit_fx.png" id="1_hit"]
+
+[sub_resource type="AtlasTexture" id="Atlas_hit_0"]
+atlas = ExtResource("1_hit")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="Atlas_hit_1"]
+atlas = ExtResource("1_hit")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="Atlas_hit_2"]
+atlas = ExtResource("1_hit")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="Atlas_hit_3"]
+atlas = ExtResource("1_hit")
+region = Rect2(96, 0, 32, 32)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Atlas_hit_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_hit_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_hit_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_hit_3")
+}],
+"loop": false,
+"name": &"hit_fx",
+"speed": 22.0
+}]

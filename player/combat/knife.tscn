@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://player/character/knife.png" id="2_tex"]
+
+[sub_resource type="GDScript" id="GDScript_1_knife"]
+script/source = "extends Area2D\n## 远程风格投出的飞刀:水平飞行,命中敌人/木箱/敌方弹幕或地形后消失。\n\nconst HIT_SPARK := preload(\"res://player/character/effect/hit_spark.tscn\")\n\n@export var speed := 820.0\n@export var max_range := 720.0\n@export var damage := 12\n@export var knockback := 170.0\n@export var launch := -40.0\n\nvar _dir := 1\nvar _travel := 0.0\nvar _done := false\n\n@onready var _sprite: Sprite2D = $Sprite\n\n\nfunc _ready() -> void:\n\tadd_to_group(&\"player_knife\")\n\tmonitorable = false\n\tarea_entered.connect(_on_area_entered)\n\tbody_entered.connect(_on_body_entered)\n\n\nfunc setup(dir: int) -> void:\n\t_dir = 1 if dir >= 0 else -1\n\t_sprite.flip_h = _dir < 0\n\n\nfunc _physics_process(delta: float) -> void:\n\tif _done:\n\t\treturn\n\tvar step := speed * delta\n\tglobal_position.x += step * _dir\n\t_travel += step\n\tif _travel >= max_range:\n\t\tqueue_free()\n\n\nfunc _on_area_entered(area: Area2D) -> void:\n\tif _done:\n\t\treturn\n\tvar target = area.get_parent()\n\tif target == null:\n\t\treturn\n\tif target.is_in_group(&\"projectile\"):\n\t\t_done = true\n\t\ttarget.call(\"pop\")\n\t\t_burst()\n\t\tqueue_free()\n\t\treturn\n\tif target.has_method(\"take_hit\"):\n\t\t_done = true\n\t\ttarget.call(\"take_hit\", damage, _dir, knockback, launch)\n\t\t_burst()\n\t\tqueue_free()\n\n\nfunc _on_body_entered(body: Node) -> void:\n\tif _done or body.is_in_group(&\"player\"):\n\t\treturn\n\t_done = true\n\tif body.has_method(\"take_hit\"):\n\t\tbody.call(\"take_hit\", damage, _dir, knockback, launch)\n\t_burst()\n\tqueue_free()\n\n\nfunc _burst() -> void:\n\tvar spark := HIT_SPARK.instantiate()\n\tspark.scale = Vector2(0.55, 0.55)\n\tspark.rotation = randf_range(-0.5, 0.5)\n\tvar host := get_parent()\n\tif host == null:\n\t\treturn\n\thost.add_child(spark)\n\tspark.global_position = global_position\n"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_knife"]
+size = Vector2(54, 8)
+
+[node name="Knife" type="Area2D"]
+z_index = 7
+collision_layer = 0
+collision_mask = 21
+monitorable = false
+script = SubResource("GDScript_1_knife")
+
+[node name="Trail" type="CPUParticles2D" parent="."]
+z_index = -1
+amount = 10
+lifetime = 0.18
+local_coords = false
+direction = Vector2(-1, 0)
+spread = 12.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 5.0
+initial_velocity_max = 18.0
+scale_amount_min = 1.0
+scale_amount_max = 2.0
+color = Color(1, 0.93, 0.7, 0.55)
+
+[node name="Sprite" type="Sprite2D" parent="."]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_knife")

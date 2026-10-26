@@ -1,0 +1,48 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://player/character/effect/grenade_explosion.gd" id="1_boom"]
+[ext_resource type="SpriteFrames" path="res://player/character/effect/explosion_frames.tres" id="2_frames"]
+[ext_resource type="AudioStream" path="res://audio/explosions/grenade_bang.ogg" id="3_bang"]
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.22, 0.62, 1)
+colors = PackedColorArray(1, 0.97, 0.8, 1, 1, 0.62, 0.16, 0.9, 1, 0.27, 0.04, 0.4, 0.35, 0.04, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_glow"]
+blend_mode = 1
+
+[node name="GrenadeExplosion" type="Node2D"]
+z_index = 12
+script = ExtResource("1_boom")
+
+[node name="Glow" type="Sprite2D" parent="."]
+z_index = -1
+material = SubResource("CanvasItemMaterial_glow")
+position = Vector2(0, -42)
+scale = Vector2(0.3, 0.3)
+modulate = Color(1, 1, 1, 0)
+texture_filter = 1
+texture = SubResource("GradientTexture2D_glow")
+
+[node name="Boom" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -53)
+z_index = 1
+scale = Vector2(6.5, 6.5)
+sprite_frames = ExtResource("2_frames")
+animation = &"boom"
+texture_filter = 1
+
+[node name="Bang" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(0, -30)
+stream = ExtResource("3_bang")
+volume_db = -4.0
+max_distance = 1600.0
+attenuation = 1.1

@@ -1,0 +1,19 @@
+# 本对话中修改过的文件 —— 被 Team Create 同步覆盖时可用 guard.ps1 restore 还原
+# 用法: pwsh -File .protected/guard.ps1 status|snapshot|restore|lock|unlock|watch
+# 注意: 只保护脚本/场景; 图片资源不要设只读,否则 Team Create 的素材转发会
+#       反复重试转换("Converted temporary file to real asset")并刷爆日志。
+player/player.tscn
+player/player.gd
+player/character/effect/reflect_ring.gd
+player/character/effect/reflect_ring.tscn
+player/character/effect/reflected_shot.gd
+player/character/effect/reflected_shot.tscn
+levels/npc/companion_dialogue.gd
+levels/world_main.tscn
+levels/fire_room.tscn
+levels/enemies/tank.gd
+levels/enemies/tank.tscn
+levels/combat/tank_boom.gd
+levels/combat/tank_boom.tscn
+levels/hud.tscn
+project.godot

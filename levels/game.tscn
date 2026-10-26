@@ -1,0 +1,53 @@
+[gd_scene load_steps=6 format=3 uid="uid://game_dimension_001"]
+
+[ext_resource type="PackedScene" path="res://levels/world_main.tscn" id="2_wm"]
+[ext_resource type="PackedScene" path="res://levels/world_parallel.tscn" id="3_wp"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" path="res://levels/hud.tscn" id="5_hud"]
+
+[sub_resource type="GDScript" id="GDScript_1_game"]
+script/source = "extends Node2D\n## 维度切换世界:主线世界与平行世界同时加载。\n## 主角按 Q 在两者间切换,保持 X 坐标并落到目标世界对应地面的上方,冷却 5 秒。\n\nconst COOLDOWN := 5.0\nconst STAND_OFFSET := 45.0  # 胶囊底部半高 43px,再留 2px 让物理自行落稳\nconst WALK_IN_START_X := 40.0\nconst WALK_IN_SPEED := 120.0\n\n@onready var worlds: Array[Node2D] = [$WorldMain, $WorldParallel]\n@onready var player: CharacterBody2D = $Player\n@onready var dim_label: Label = $DimLabel\n@onready var flash: ColorRect = $Flash\n\nvar _active := 0\nvar _cooldown_left := 0.0\nvar _limits: Dictionary = {}\nvar _switching := false\n\n\nfunc _ready() -> void:\n\tfor i in worlds.size():\n\t\tvar w := worlds[i]\n\t\tvar w_player := w.get_node_or_null(\"Player\")\n\t\tif w_player:\n\t\t\tvar cam := w_player.get_node_or_null(\"Camera2D\")\n\t\t\tif cam:\n\t\t\t\tcam.enabled = false\n\t\t\t\t_limits[i] = Rect2(\n\t\t\t\t\tcam.limit_left, cam.limit_top,\n\t\t\t\t\tcam.limit_right - cam.limit_left,\n\t\t\t\t\tcam.limit_bottom - cam.limit_top\n\t\t\t\t)\n\t\t\tw_player.collision_layer = 0\n\t\t\tw_player.collision_mask = 0\n\t\t\tw_player.queue_free()\n\t\tvar w_hud := w.get_node_or_null(\"HUD\")\n\t\tif w_hud:\n\t\t\tw_hud.queue_free()\n\t_set_world_active(0, true)\n\t_set_world_active(1, false)\n\t_start_opening_walk_in()\n\t_apply_limits(0)\n\tif player.has_signal(\"dimension_shot_finished\"):\n\t\tplayer.connect(\"dimension_shot_finished\", _on_dimension_shot_finished)\n\n\nfunc _process(delta: float) -> void:\n\tif _cooldown_left > 0.0:\n\t\t_cooldown_left = maxf(0.0, _cooldown_left - delta)\n\t_update_label()\n\n\nfunc _unhandled_input(event: InputEvent) -> void:\n\tif event.is_action_pressed(\"switch_dimension\") and _cooldown_left <= 0.0 and not _switching:\n\t\t_begin_switch()\n\n\nfunc _begin_switch() -> void:\n\tif _switching or _cooldown_left > 0.0:\n\t\treturn\n\t_switching = true\n\tvar started: bool = player.call(\"play_dimension_shot\")\n\tif not started:\n\t\t_switching = false\n\n\nfunc _on_dimension_shot_finished() -> void:\n\t_switching = false\n\t_switch()\n\n\nfunc _switch() -> void:\n\tif _cooldown_left > 0.0:\n\t\treturn\n\tvar target := 1 - _active\n\tvar x := player.global_position.x\n\tvar ground_y := _ground_y_at(worlds[target], x)\n\t_set_world_active(_active, false)\n\t_set_world_active(target, true)\n\t_active = target\n\tplayer.velocity = Vector2.ZERO\n\tif ground_y != INF:\n\t\tplayer.global_position = Vector2(x, ground_y - STAND_OFFSET)\n\t_apply_limits(target)\n\t_cooldown_left = COOLDOWN\n\t_play_flash()\n\n\n## 首次进入主世界:主角从场景最左端出现并走到出生点,途中锁定操作。\nfunc _start_opening_walk_in() -> void:\n\tvar spawn := worlds[0].get_node_or_null(\"PlayerSpawn\") as Node2D\n\tif spawn == null:\n\t\treturn\n\tvar ground_y := _ground_y_at(worlds[0], WALK_IN_START_X)\n\tvar y := spawn.position.y\n\tif ground_y != INF:\n\t\ty = ground_y - 1.0\n\tplayer.global_position = Vector2(WALK_IN_START_X, y)\n\tvar hint := get_node_or_null(\"HUD/CombatHint\") as CanvasItem\n\tif hint != null:\n\t\thint.visible = false\n\tif player.has_method(\"begin_walk_in\"):\n\t\tplayer.call(\"begin_walk_in\", spawn.position.x, WALK_IN_SPEED)\n\t\t_reveal_hint_after_walk_in(hint)\n\n\nfunc _reveal_hint_after_walk_in(hint: CanvasItem) -> void:\n\tif hint == null:\n\t\treturn\n\twhile is_instance_valid(player) and bool(player.get(\"_walk_in_active\")):\n\t\tawait get_tree().physics_frame\n\tif is_instance_valid(hint):\n\t\thint.visible = true\n\n\n## 目标世界里 x 处最高的可站立表面 y(越小越高)。\nfunc _ground_y_at(world: Node2D, x: float) -> float:\n\tvar best := INF\n\tfor child in world.get_node(\"Terrain\").get_children():\n\t\tif not (child is StaticBody2D):\n\t\t\tcontinue\n\t\tvar pos: Vector2 = child.position\n\t\tif child.has_method(\"_points\"):  # 斜坡\n\t\t\tvar run: float = child.get(\"run\")\n\t\t\tvar rise: float = child.get(\"rise\")\n\t\t\tvar kind: String = child.get(\"kind\")\n\t\t\tif x < pos.x or x > pos.x + run:\n\t\t\t\tcontinue\n\t\t\tvar lx := clampf(x - pos.x, 0.0, run)\n\t\t\tvar surface: float = pos.y\n\t\t\tif kind == \"down\":\n\t\t\t\tsurface = pos.y - rise + (lx / run) * rise\n\t\t\telse:\n\t\t\t\tsurface = pos.y - (lx / run) * rise\n\t\t\tbest = minf(best, surface)\n\t\telse:  # 平台\n\t\t\tvar sz = child.get(\"size\")\n\t\t\tif sz == null:\n\t\t\t\tcontinue\n\t\t\tvar half_w: float = sz.x * 0.5\n\t\t\tif x < pos.x - half_w or x > pos.x + half_w:\n\t\t\t\tcontinue\n\t\t\tvar top: float = pos.y - sz.y * 0.5\n\t\t\tbest = minf(best, top)\n\treturn best\n\n\nfunc _set_world_active(idx: int, on: bool) -> void:\n\tvar w := worlds[idx]\n\tw.visible = on\n\t# CanvasLayer(背景层)不受父 Node2D 可见性影响,需单独跟随世界开关\n\tfor child in w.get_children():\n\t\tif child is CanvasLayer:\n\t\t\tchild.visible = on\n\tw.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED\n\tvar layer := 1 if on else 0\n\tfor child in w.get_node(\"Terrain\").get_children():\n\t\tchild.set_deferred(\"collision_layer\", layer)\n\t\tchild.set_deferred(\"collision_mask\", layer)\n\n\n## 切换世界时同步根玩家的相机边界。\nfunc _apply_limits(idx: int) -> void:\n\tif not _limits.has(idx):\n\t\treturn\n\tvar r: Rect2 = _limits[idx]\n\tvar cam := player.get_node(\"Camera2D\") as Camera2D\n\tcam.limit_left = int(r.position.x)\n\tcam.limit_top = int(r.position.y)\n\tcam.limit_right = int(r.position.x + r.size.x)\n\tcam.limit_bottom = int(r.position.y + r.size.y)\n\tcam.reset_smoothing()\n\n\nfunc _update_label() -> void:\n\tif _switching:\n\t\tdim_label.text = \"维度跃迁...\"\n\t\tdim_label.modulate.a = 0.95\n\telif _cooldown_left > 0.0:\n\t\tdim_label.text = \"维度冷却: %.1fs\" % _cooldown_left\n\t\tdim_label.modulate.a = 0.95\n\telse:\n\t\tdim_label.text = \"[Q] 进入平行世界\"\n\t\tdim_label.modulate.a = 0.55\n\n\nfunc _play_flash() -> void:\n\tflash.modulate.a = 0.35\n\tflash.visible = true\n\tvar tw := create_tween()\n\ttw.tween_property(flash, \"modulate:a\", 0.0, 0.35)\n\ttw.tween_callback(func() -> void: flash.visible = false)\n"
+
+[node name="Game" type="Node2D"]
+script = SubResource("GDScript_1_game")
+
+[node name="WorldMain" parent="." instance=ExtResource("2_wm")]
+
+[node name="WorldParallel" parent="." instance=ExtResource("3_wp")]
+visible = false
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+position = Vector2(220, 600)
+camera_limits = Rect2(0, 80, 12200, 660)
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]
+
+[node name="DimLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 8.0
+offset_right = 220.0
+offset_bottom = 38.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.45, 0.9, 1, 0.9)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 17
+text = "[Q] 进入平行世界"
+horizontal_alignment = 1
+
+[node name="Flash" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.85, 1, 0.35)
+mouse_filter = 2

@@ -1,0 +1,75 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cro3khl0hur0c"]
+
+[ext_resource type="Texture2D" uid="uid://du47n0h8r0snd" path="res://picture/explosions.png" id="1_sheet"]
+
+[sub_resource type="AtlasTexture" id="Atlas_b0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(192, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b1"]
+atlas = ExtResource("1_sheet")
+region = Rect2(208, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b2"]
+atlas = ExtResource("1_sheet")
+region = Rect2(224, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(240, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(256, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(272, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b6"]
+atlas = ExtResource("1_sheet")
+region = Rect2(288, 16, 16, 16)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_b7"]
+atlas = ExtResource("1_sheet")
+region = Rect2(304, 16, 16, 16)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Atlas_b0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b4")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b5")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b6")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_b7")
+}],
+"loop": 1,
+"name": &"burst",
+"speed": 12.0
+}]

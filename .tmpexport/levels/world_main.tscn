@@ -1,0 +1,554 @@
+[gd_scene load_steps=14 format=3 uid="uid://world_main_001"]
+
+[ext_resource type="PackedScene" path="res://levels/terrain/platform.tscn" id="1_plat"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" path="res://levels/hud.tscn" id="6_hud"]
+[ext_resource type="Texture2D" path="res://picture/world_main_bg.png" id="7_bg"]
+[ext_resource type="PackedScene" path="res://levels/combat/training_dummy.tscn" id="8_dummy"]
+[ext_resource type="PackedScene" path="res://levels/npc/violet_companion.tscn" id="9_npc"]
+[ext_resource type="PackedScene" path="res://levels/props/iron_cover.tscn" id="10_iron"]
+[ext_resource type="PackedScene" path="res://levels/props/wood_cover.tscn" id="11_wood"]
+[ext_resource type="PackedScene" path="res://levels/enemies/enemy_melee.tscn" id="12_enemy"]
+[ext_resource type="PackedScene" path="res://levels/enemies/enemy_gunman.tscn" id="13_gunner"]
+[ext_resource type="PackedScene" path="res://levels/hazards/laser.tscn" id="14_laser"]
+[ext_resource type="PackedScene" path="res://levels/goal/extraction.tscn" id="15_extraction"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(40, 1400)
+
+[node name="WorldMain" type="Node2D"]
+
+[node name="Background" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = -100
+
+[node name="Backdrop" type="TextureRect" parent="Background"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(0.78, 0.8, 0.86, 1)
+mouse_filter = 2
+texture = ExtResource("7_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Ground" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(6100, 696)
+size = Vector2(12600, 80)
+pattern_style = 0
+
+[node name="LeftWall" type="StaticBody2D" parent="Terrain"]
+position = Vector2(0, 300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/LeftWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="StaticBody2D" parent="Terrain"]
+position = Vector2(12200, 300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/RightWall"]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="LOW_0430" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(430, 594)
+size = Vector2(140, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_0620" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(620, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_0900" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(900, 538)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_1250" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(1250, 538)
+size = Vector2(200, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_1550" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(1550, 408)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="DAIS_1700" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(1700, 644)
+size = Vector2(200, 24)
+pattern_style = 0
+
+[node name="T1_1900" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(1900, 538)
+size = Vector2(220, 20)
+one_way = true
+pattern_style = 1
+
+[node name="LOW_2150" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(2150, 594)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_2430" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(2430, 538)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_2650" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(2650, 408)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T3_2870" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(2870, 278)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T3_3090" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(3090, 278)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T2_3310" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(3310, 408)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_3470" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(3470, 538)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_3680" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(3680, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_3950" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(3950, 408)
+size = Vector2(200, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="DAIS_4050" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(4050, 644)
+size = Vector2(180, 24)
+pattern_style = 0
+
+[node name="T1_4250" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(4250, 538)
+size = Vector2(280, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_4550" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(4550, 408)
+size = Vector2(200, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_4850" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(4850, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_5150" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(5150, 408)
+size = Vector2(300, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T3_5450" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(5450, 278)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T1_5700" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(5700, 538)
+size = Vector2(220, 20)
+one_way = true
+pattern_style = 1
+
+[node name="LOW_6050" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(6050, 594)
+size = Vector2(220, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_6300" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(6300, 538)
+size = Vector2(220, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_6600" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(6600, 408)
+size = Vector2(260, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_6900" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(6900, 538)
+size = Vector2(220, 20)
+one_way = true
+pattern_style = 1
+
+[node name="LOW_7050" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(7050, 594)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_7250" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(7250, 538)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_7470" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(7470, 408)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T3_7690" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(7690, 278)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T3_7910" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(7910, 278)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T2_8130" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(8130, 408)
+size = Vector2(160, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_8290" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(8290, 538)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_8510" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(8510, 538)
+size = Vector2(260, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_8750" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(8750, 408)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_8990" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(8990, 538)
+size = Vector2(280, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_9230" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(9230, 408)
+size = Vector2(180, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_9470" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(9470, 538)
+size = Vector2(200, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T1_9700" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(9700, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_10000" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(10000, 408)
+size = Vector2(260, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_10300" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(10300, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_10600" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(10600, 408)
+size = Vector2(260, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T1_10850" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(10850, 538)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+
+[node name="T2_11150" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(11150, 408)
+size = Vector2(260, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="T3_11450" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(11450, 278)
+size = Vector2(240, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(1, 0.38, 0.62, 0.95)
+
+[node name="T2_11750" parent="Terrain" instance=ExtResource("1_plat")]
+position = Vector2(11750, 408)
+size = Vector2(200, 20)
+one_way = true
+pattern_style = 1
+edge_color = Color(0.35, 0.88, 1, 0.95)
+
+[node name="IronCover_1450" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(1450, 656)
+
+[node name="WoodCover_2300" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(2300, 656)
+
+[node name="WoodCover_3250" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(3250, 656)
+
+[node name="WoodCover_3850" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(3850, 656)
+
+[node name="IronCover_4500" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(4500, 656)
+
+[node name="WoodCover_5050" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(5050, 656)
+
+[node name="IronCover_5400" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(5400, 656)
+
+[node name="IronCover_5850" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(5850, 656)
+
+[node name="WoodCover_6500" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(6500, 656)
+
+[node name="IronCover_7400" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(7400, 656)
+
+[node name="WoodCover_7800" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(7800, 656)
+
+[node name="IronCover_8700" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(8700, 656)
+
+[node name="WoodCover_9250" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(9250, 656)
+
+[node name="WoodCover_9900" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(9900, 656)
+
+[node name="IronCover_10500" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(10500, 656)
+
+[node name="WoodCover_11100" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(11100, 656)
+
+[node name="IronCover_11700" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(11700, 656)
+
+[node name="IronCover_2600_0" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(2600, 656)
+
+[node name="IronCover_2600_1" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(2600, 592)
+
+[node name="IronCover_8150_0" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(8150, 656)
+
+[node name="WoodCover_8150_1" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(8150, 592)
+
+[node name="IronCover_11350_0" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(11350, 656)
+
+[node name="IronCover_11350_1" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(11350, 592)
+
+[node name="WoodCover_690_A" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(690, 528)
+
+[node name="IronCover_1940_A" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(1940, 528)
+
+[node name="WoodCover_4150_A" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(4150, 528)
+
+[node name="IronCover_4490_A" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(4490, 398)
+
+[node name="IronCover_9920_A" parent="Terrain" instance=ExtResource("10_iron")]
+position = Vector2(9920, 398)
+
+[node name="WoodCover_7860_A" parent="Terrain" instance=ExtResource("11_wood")]
+position = Vector2(7860, 268)
+
+[node name="TrainingDummy_352" parent="." instance=ExtResource("8_dummy")]
+position = Vector2(352, 656)
+
+[node name="TrainingDummy_5250" parent="." instance=ExtResource("8_dummy")]
+position = Vector2(5250, 656)
+
+[node name="TrainingDummy_8000" parent="." instance=ExtResource("8_dummy")]
+position = Vector2(8000, 656)
+
+[node name="TrainingDummy_11150" parent="." instance=ExtResource("8_dummy")]
+position = Vector2(11150, 656)
+
+[node name="VioletCompanion" parent="." instance=ExtResource("9_npc")]
+position = Vector2(3050, 606)
+
+[node name="Enemy_1050" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(1050, 656)
+
+[node name="Enemy_2750" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(2750, 656)
+
+[node name="Enemy_3650" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(3650, 528)
+
+[node name="Enemy_4320" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(4320, 528)
+
+[node name="Enemy_4900" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(4900, 528)
+
+[node name="Enemy_5500" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(5500, 656)
+
+[node name="Enemy_6600" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(6600, 398)
+
+[node name="Enemy_7550" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(7550, 656)
+
+[node name="Enemy_8130" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(8130, 398)
+
+[node name="Enemy_8800" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(8800, 656)
+
+[node name="Enemy_9050" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(9050, 528)
+
+[node name="Enemy_9750" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(9750, 528)
+
+[node name="Enemy_10650" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(10650, 656)
+
+[node name="Enemy_10850" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(10850, 528)
+
+[node name="Enemy_11600" parent="." instance=ExtResource("12_enemy")]
+position = Vector2(11600, 656)
+
+[node name="Gunner_0900" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(900, 656)
+
+[node name="Gunner_1850" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(1850, 656)
+
+[node name="Gunner_3450" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(3450, 656)
+
+[node name="Gunner_4650" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(4650, 656)
+
+[node name="Gunner_5750" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(5750, 656)
+
+[node name="Gunner_7280" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(7280, 656)
+
+[node name="Gunner_8550" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(8550, 656)
+
+[node name="Gunner_9400" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(9400, 656)
+
+[node name="Gunner_10050" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(10050, 656)
+
+[node name="Gunner_11500" parent="." instance=ExtResource("13_gunner")]
+position = Vector2(11500, 656)
+
+[node name="Laser_5000" parent="." instance=ExtResource("14_laser")]
+position = Vector2(5000, 656)
+
+[node name="Extraction" parent="." instance=ExtResource("15_extraction")]
+position = Vector2(11950, 656)
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(220, 600)
+
+[node name="SafeZone" type="Marker2D" parent="."]
+position = Vector2(420, 596)
+
+[node name="EvidenceGoal" type="Marker2D" parent="."]
+position = Vector2(11900, 604)
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+position = Vector2(220, 600)
+camera_limits = Rect2(0, 80, 12200, 660)
+
+[node name="HUD" parent="." instance=ExtResource("6_hud")]

@@ -1,0 +1,8 @@
+- id: mcp-godot
+  name: '@deepseek-ai/dsh-mcp-client'
+  config:
+	serverName: godot
+	transport: stdio
+	command: godot-mcp
+	env:
+	  GODOT_MCP_BRIDGE_PORT: '6510'

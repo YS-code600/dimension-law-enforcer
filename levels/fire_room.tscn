@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=3 uid="uid://bqmtq4qrqpp45"]
+
+[ext_resource type="Script" path="res://levels/fire_room.gd" id="1_room"]
+[ext_resource type="Texture2D" path="res://levels/hazards/fire_room_ground.png" id="2_ground"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://levels/npc/violet_companion.tscn" id="4_companion"]
+[ext_resource type="PackedScene" path="res://levels/hud.tscn" id="5_hud"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1600, 160)
+
+[node name="FireRoom" type="Node2D"]
+script = ExtResource("1_room")
+
+[node name="Sky" type="ColorRect" parent="."]
+offset_left = -400.0
+offset_top = -400.0
+offset_right = 1552.0
+offset_bottom = 760.0
+color = Color(0.0431373, 0.0470588, 0.0784314, 1)
+mouse_filter = 2
+
+[node name="GroundTex" type="TextureRect" parent="."]
+texture_filter = 1
+texture_repeat = 2
+offset_left = -160.0
+offset_top = 600.0
+offset_right = 1312.0
+offset_bottom = 760.0
+mouse_filter = 2
+texture = ExtResource("2_ground")
+stretch_mode = 2
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(576, 680)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_ground")
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector2(420, 600)
+
+[node name="VioletCompanion" parent="." instance=ExtResource("4_companion")]
+position = Vector2(520, 600)
+start_following = true
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]
+
+[node name="Fade" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Rect" type="ColorRect" parent="Fade"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+mouse_filter = 2

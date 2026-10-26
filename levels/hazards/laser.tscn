@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=3 uid="uid://laser_hazard_001"]
+
+[ext_resource type="Script" path="res://levels/hazards/laser.gd" id="1_laser"]
+[ext_resource type="Texture2D" path="res://levels/hazards/laser_beam_1.png" id="2_beam1"]
+[ext_resource type="Texture2D" path="res://levels/hazards/laser_beam_2.png" id="3_beam2"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_laser"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_beam1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_beam2")
+}],
+"loop": true,
+"name": &"default",
+"speed": 10.0
+}]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_laser"]
+size = Vector2(18, 656)
+
+[node name="Laser" type="Node2D"]
+z_index = 6
+script = ExtResource("1_laser")
+
+[node name="Glow" type="Sprite2D" parent="."]
+z_index = -1
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -330)
+scale = Vector2(2.6, 1)
+modulate = Color(0.3, 0.8, 1, 0.22)
+texture = ExtResource("2_beam1")
+
+[node name="Beam" type="AnimatedSprite2D" parent="."]
+modulate = Color(0.6, 0.95, 1, 1)
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -330)
+scale = Vector2(1.2, 1)
+sprite_frames = SubResource("SpriteFrames_laser")
+animation = &"default"
+autoplay = "default"
+texture_filter = 1
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -328)
+shape = SubResource("RectangleShape2D_laser")

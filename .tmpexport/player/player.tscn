@@ -1,0 +1,83 @@
+[gd_scene load_steps=10 format=3 uid="uid://player_placeholder_001"]
+
+[ext_resource type="Script" path="res://player/player.gd" id="1_play"]
+[ext_resource type="SpriteFrames" path="res://player/red_frames.tres" id="2_frames"]
+[ext_resource type="SpriteFrames" path="res://player/character/fx_frames.tres" id="3_fx"]
+[ext_resource type="Texture2D" path="res://player/character/gun.png" id="4_gun"]
+[ext_resource type="Texture2D" path="res://levels/enemies/enemy_muzzle.png" id="5_muzzle"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_body"]
+radius = 13.0
+height = 86.0
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_fx"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_skill"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.4, 0.95, 1, 0.5, 0.55, 0.4, 1, 0.22, 0.2, 0.1, 0.6, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_skill"]
+gradient = SubResource("Gradient_skill")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="Player" type="CharacterBody2D"]
+z_index = 5
+script = ExtResource("1_play")
+
+[node name="SkillAura" type="Sprite2D" parent="."]
+visible = false
+z_index = -1
+material = SubResource("CanvasItemMaterial_fx")
+position = Vector2(0, -48)
+scale = Vector2(0.8, 0.8)
+modulate = Color(0.65, 0.7, 1, 0.4)
+texture = SubResource("GradientTexture2D_skill")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("2_frames")
+animation = &"idle"
+autoplay = "idle"
+offset = Vector2(0, -23)
+scale = Vector2(2, 2)
+texture_filter = 1
+
+[node name="Fx" type="AnimatedSprite2D" parent="."]
+visible = false
+material = SubResource("CanvasItemMaterial_fx")
+z_index = 1
+sprite_frames = ExtResource("3_fx")
+offset = Vector2(0, -23)
+scale = Vector2(2, 2)
+texture_filter = 1
+
+[node name="Gun" type="Sprite2D" parent="."]
+visible = false
+z_index = 6
+texture_filter = 1
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("4_gun")
+
+[node name="GunMuzzle" type="Sprite2D" parent="."]
+visible = false
+z_index = 7
+material = SubResource("CanvasItemMaterial_fx")
+texture_filter = 1
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("5_muzzle")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -43)
+shape = SubResource("CapsuleShape2D_body")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+limit_left = 0
+limit_top = 120
+limit_right = 3600
+limit_bottom = 720

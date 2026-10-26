@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://wood_cover_001"]
+
+[ext_resource type="Script" path="res://levels/props/wood_cover.gd" id="1_wood"]
+[ext_resource type="Texture2D" path="res://levels/props/wood_cover.png" id="2_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cover"]
+size = Vector2(64, 64)
+
+[node name="WoodCover" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 0
+script = ExtResource("1_wood")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+offset = Vector2(0, -32)
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -32)
+shape = SubResource("RectangleShape2D_cover")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -32)
+shape = SubResource("RectangleShape2D_cover")

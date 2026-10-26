@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://terrain_ramp_001"]
+
+[ext_resource type="Script" path="res://levels/terrain/ramp.gd" id="1_ramp"]
+
+[node name="Ramp" type="StaticBody2D"]
+script = ExtResource("1_ramp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]

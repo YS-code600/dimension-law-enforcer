@@ -1,0 +1,5 @@
+[gd_scene format=3]
+
+[node name="_Node2D_89" type="Node2D" unique_id=1964369168]
+metadata/_tc_uuid = "2230514833007856313"
+metadata/scene_file_path = "res://node_2d.tscn"

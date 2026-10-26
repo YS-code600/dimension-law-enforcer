@@ -1,0 +1,47 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://levels/combat/grenade.gd" id="1_grenade"]
+[ext_resource type="Texture2D" path="res://player/character/grenade.png" id="2_tex"]
+
+[sub_resource type="AtlasTexture" id="Atlas_grenade"]
+atlas = ExtResource("2_tex")
+region = Rect2(10, 6, 12, 15)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_grenade"]
+radius = 6.0
+
+[sub_resource type="Gradient" id="Gradient_trail"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 0.95, 0.72, 0.7, 1, 0.48, 0.1, 0.4, 0.4, 0.03, 0, 0)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_trail"]
+blend_mode = 1
+
+[node name="Grenade" type="CharacterBody2D"]
+z_index = 8
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1_grenade")
+
+[node name="Trail" type="CPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_trail")
+z_index = -1
+amount = 18
+lifetime = 0.2
+local_coords = false
+direction = Vector2(-1, 0)
+spread = 25.0
+gravity = Vector2(0, 50)
+initial_velocity_min = 6.0
+initial_velocity_max = 20.0
+scale_amount_min = 2.2
+scale_amount_max = 4.6
+color_ramp = SubResource("Gradient_trail")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(2.5, 2.5)
+texture = SubResource("Atlas_grenade")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_grenade")

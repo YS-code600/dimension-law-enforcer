@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://levels/hazards/falling_flame.gd" id="1_flame"]
+[ext_resource type="SpriteFrames" path="res://levels/hazards/fire_sheet_frames.tres" id="2_frames"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_flame"]
+size = Vector2(56, 92)
+
+[node name="FallingFlame" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1_flame")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -54)
+scale = Vector2(1.5, 1.5)
+texture_filter = 1
+sprite_frames = ExtResource("2_frames")
+animation = &"burn"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -54)
+shape = SubResource("RectangleShape2D_flame")

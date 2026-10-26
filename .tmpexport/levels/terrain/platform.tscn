@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://terrain_platform_001"]
+
+[ext_resource type="Script" path="res://levels/terrain/platform.gd" id="1_plat"]
+
+[node name="Platform" type="StaticBody2D"]
+texture_filter = 1
+script = ExtResource("1_plat")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]

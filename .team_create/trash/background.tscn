@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://bwoah5j3lpkqd"]
+
+[ext_resource type="Script" path="res://levels/background/bg_world.gd" id="1_xehqc"]
+[ext_resource type="Script" path="res://levels/background/bg_city.gd" id="2_splo0"]
+[ext_resource type="Script" path="res://levels/background/gif_layer.gd" id="3_eq6nc"]
+
+[sub_resource type="Gradient" id="Gradient_sky"]
+colors = PackedColorArray(0.04, 0.07, 0.16, 1, 0.22, 0.14, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_sky"]
+gradient = SubResource("Gradient_sky")
+
+[node name="Background" type="Node2D" unique_id=677458264]
+z_index = -100
+script = ExtResource("1_xehqc")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="." unique_id=831239580]
+
+[node name="LayerSky" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1251573698]
+motion_scale = Vector2(0, 0)
+
+[node name="SkyRect" type="TextureRect" parent="ParallaxBackground/LayerSky" unique_id=407724628]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_sky")
+expand_mode = 1
+
+[node name="LayerFar" type="ParallaxLayer" parent="ParallaxBackground" unique_id=466534754]
+motion_scale = Vector2(0.14, 0)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="FarCity" type="Node2D" parent="ParallaxBackground/LayerFar" unique_id=1960255980]
+unique_name_in_owner = true
+script = ExtResource("2_splo0")
+
+[node name="LayerGif" type="ParallaxLayer" parent="ParallaxBackground" unique_id=795271819]
+motion_scale = Vector2(0.4, 0)
+
+[node name="GifAnim" type="Node2D" parent="ParallaxBackground/LayerGif" unique_id=543108953]
+unique_name_in_owner = true
+script = ExtResource("3_eq6nc")
+
+[node name="LayerNear" type="ParallaxLayer" parent="ParallaxBackground" unique_id=1842528936]
+motion_scale = Vector2(0.7, 0)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="NearCity" type="Node2D" parent="ParallaxBackground/LayerNear" unique_id=1499144916]
+unique_name_in_owner = true
+script = ExtResource("2_splo0")
+
+[node name="LayerMotes" type="ParallaxLayer" parent="ParallaxBackground" unique_id=552368053]
+motion_scale = Vector2(0.5, 0.4)
+
+[node name="Motes" type="CPUParticles2D" parent="ParallaxBackground/LayerMotes" unique_id=847578416]
+unique_name_in_owner = true
+amount = 56
+lifetime = 9.0
+preprocess = 4.0
+randomness = 0.4
+direction = Vector2(0, -1)
+spread = 24.0
+gravity = Vector2(0, -24)
+initial_velocity_min = 10.0
+initial_velocity_max = 46.0
+scale_amount_min = 0.8
+scale_amount_max = 2.6
+color = Color(1, 0.7, 0.35, 0.5)

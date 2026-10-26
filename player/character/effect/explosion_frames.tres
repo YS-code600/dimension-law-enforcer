@@ -1,0 +1,46 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://df6gmddsnya0f"]
+
+[ext_resource type="Texture2D" uid="uid://0snw144av857" path="res://player/character/effect/explosion_sheet.png" id="1_boom"]
+
+[sub_resource type="AtlasTexture" id="Atlas_boom_0"]
+atlas = ExtResource("1_boom")
+region = Rect2(0, 0, 20, 18)
+
+[sub_resource type="AtlasTexture" id="Atlas_boom_1"]
+atlas = ExtResource("1_boom")
+region = Rect2(20, 0, 20, 18)
+
+[sub_resource type="AtlasTexture" id="Atlas_boom_2"]
+atlas = ExtResource("1_boom")
+region = Rect2(40, 0, 20, 18)
+
+[sub_resource type="AtlasTexture" id="Atlas_boom_3"]
+atlas = ExtResource("1_boom")
+region = Rect2(60, 0, 20, 18)
+
+[sub_resource type="AtlasTexture" id="Atlas_boom_4"]
+atlas = ExtResource("1_boom")
+region = Rect2(80, 0, 20, 18)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Atlas_boom_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_boom_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_boom_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_boom_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Atlas_boom_4")
+}],
+"loop": 0,
+"name": &"boom",
+"speed": 13.0
+}]

@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3 uid="uid://game_dimension_001"]
+
+[ext_resource type="Script" path="res://levels/game.gd" id="1_game"]
+[ext_resource type="PackedScene" path="res://levels/world_main.tscn" id="2_wm"]
+[ext_resource type="PackedScene" path="res://levels/world_parallel.tscn" id="3_wp"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" path="res://levels/hud.tscn" id="5_hud"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game")
+
+[node name="WorldMain" parent="." instance=ExtResource("2_wm")]
+
+[node name="WorldParallel" parent="." instance=ExtResource("3_wp")]
+visible = false
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+position = Vector2(220, 600)
+camera_limits = Rect2(0, 80, 12200, 660)
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]
+
+[node name="DimLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 8.0
+offset_right = 220.0
+offset_bottom = 38.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.45, 0.9, 1, 0.9)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 6
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 17
+text = "[Q] 进入平行世界"
+horizontal_alignment = 1
+
+[node name="Flash" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.85, 1, 0.35)
+mouse_filter = 2

@@ -1,0 +1,672 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://main.gd" id="1_lquwl"]
+[ext_resource type="SpriteFrames" path="res://player/red_frames.tres" id="3_272bh"]
+[ext_resource type="Script" path="res://scripts/ui/cyber_box.gd" id="4_5vw27"]
+[ext_resource type="Shader" path="res://shaders/scanlines.gdshader" id="5_kek77"]
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+offsets = PackedFloat32Array(0, 0.28, 0.72, 1)
+colors = PackedColorArray(0, 0, 0, 0.72, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.62)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[sub_resource type="Gradient" id="Gradient_violet"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0.65, 0.35, 1, 0.2, 0.4, 0.2, 0.9, 0.07, 0.2, 0.1, 0.6, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_violet"]
+gradient = SubResource("Gradient_violet")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="SystemFont" id="SystemFont_ui"]
+font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei")
+subpixel_positioning = 0
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.55, 1)
+colors = PackedColorArray(0.35, 0.95, 1, 0.22, 0.2, 0.7, 1, 0.08, 0.1, 0.4, 0.8, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="SystemFont" id="SystemFont_bold"]
+font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei")
+font_weight = 700
+subpixel_positioning = 0
+
+[sub_resource type="StyleBox" id="CyberBox_panel"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 30.0
+content_margin_top = 18.0
+content_margin_right = 30.0
+content_margin_bottom = 18.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0.005, 0.008, 0.025, 0.94)
+border_color = Color(0.2, 0.9, 1, 0.55)
+border_width = 1.5
+corner = 18.0
+
+[sub_resource type="StyleBox" id="CyberBox_btn_n"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0, 0, 0, 0.72)
+border_color = Color(0, 1, 1, 0.8)
+
+[sub_resource type="StyleBox" id="CyberBox_btn_p"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0, 0.7, 0.8, 0.3)
+border_color = Color(0.8, 1, 1, 1)
+border_width = 2.5
+
+[sub_resource type="StyleBox" id="CyberBox_btn_h"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0, 0.55, 0.6, 0.18)
+border_color = Color(0.5, 1, 1, 1)
+border_width = 2.5
+
+[sub_resource type="StyleBox" id="CyberBox_btn_f"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0, 0.3, 0.38, 0.22)
+border_color = Color(0, 1, 1, 1)
+border_width = 3.0
+
+[sub_resource type="StyleBox" id="CyberBox_exit_n"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0, 0, 0, 0.72)
+border_color = Color(1, 0.2, 0.4, 0.8)
+
+[sub_resource type="StyleBox" id="CyberBox_exit_p"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0.7, 0.12, 0.26, 0.32)
+border_color = Color(1, 0.5, 0.6, 1)
+border_width = 2.5
+
+[sub_resource type="StyleBox" id="CyberBox_exit_h"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = 36.0
+content_margin_top = 10.0
+content_margin_right = 36.0
+content_margin_bottom = 10.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0.55, 0.08, 0.2, 0.2)
+border_color = Color(1, 0.35, 0.5, 1)
+border_width = 2.5
+
+[sub_resource type="StyleBox" id="CyberBox_exit_f"]
+resource_local_to_scene = false
+resource_name = ""
+content_margin_left = -1.0
+content_margin_top = -1.0
+content_margin_right = -1.0
+content_margin_bottom = -1.0
+script = ExtResource("4_5vw27")
+bg_color = Color(0.4, 0.06, 0.16, 0.24)
+border_color = Color(1, 0.2, 0.4, 1)
+border_width = 3.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("5_kek77")
+shader_parameter/line_spacing = 4.0
+shader_parameter/line_density = 0.32
+shader_parameter/vignette_strength = 0.55
+shader_parameter/flicker_strength = 0.02
+shader_parameter/flicker_speed = 18.0
+
+[node name="_Control_23928" type="Control" unique_id=335826528]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lquwl")
+metadata/scene_file_path = "res://main.tscn"
+metadata/_tc_uuid = "3490496512527850246"
+
+[node name="Darken" type="ColorRect" parent="." unique_id=328008952]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.01, 0.05, 0.62)
+metadata/_tc_uuid = "6277261232063864369"
+
+[node name="EdgeShade" type="TextureRect" parent="." unique_id=1599871602]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_shade")
+expand_mode = 1
+metadata/_tc_uuid = "1072365839206912021"
+
+[node name="VioletGlow" type="TextureRect" parent="." unique_id=1680711364]
+modulate = Color(0.55, 0.85, 1, 1)
+layout_mode = 1
+offset_top = 180.0
+offset_right = 560.0
+offset_bottom = 720.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_violet")
+expand_mode = 1
+metadata/_tc_uuid = "945616142413955106"
+
+[node name="VioletPreview" type="AnimatedSprite2D" parent="." unique_id=799368219]
+unique_name_in_owner = true
+texture_filter = 1
+position = Vector2(270, 610)
+scale = Vector2(5, 5)
+offset = Vector2(0, -16)
+metadata/_tc_uuid = "7035790538720676868"
+
+[node name="VioletBase" type="ColorRect" parent="." unique_id=188188973]
+layout_mode = 1
+offset_left = 190.0
+offset_top = 610.0
+offset_right = 350.0
+offset_bottom = 612.0
+mouse_filter = 2
+color = Color(0.3, 0.65, 1, 0.3)
+metadata/_tc_uuid = "1910218825851934453"
+
+[node name="VioletBaseCore" type="ColorRect" parent="." unique_id=429547958]
+layout_mode = 1
+offset_left = 230.0
+offset_top = 610.0
+offset_right = 310.0
+offset_bottom = 611.0
+mouse_filter = 2
+color = Color(0.7, 0.95, 1, 0.6)
+metadata/_tc_uuid = "8920280852809694727"
+
+[node name="VioletLabel" type="Label" parent="." unique_id=2131640747]
+layout_mode = 1
+offset_left = 150.0
+offset_top = 620.0
+offset_right = 390.0
+offset_bottom = 642.0
+theme_override_colors/font_color = Color(0.7, 0.92, 1, 0.6)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "SUBJECT // WIZARD"
+horizontal_alignment = 1
+metadata/_tc_uuid = "2800740229881021638"
+
+[node name="CharacterGlow" type="TextureRect" parent="." unique_id=1384931516]
+modulate = Color(0.7, 1, 1, 1)
+layout_mode = 1
+offset_left = 740.0
+offset_top = 200.0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_glow")
+expand_mode = 1
+metadata/_tc_uuid = "6102953595911250851"
+
+[node name="CharacterPreview" type="AnimatedSprite2D" parent="." unique_id=1519417976]
+texture_filter = 1
+position = Vector2(1010, 610)
+scale = Vector2(4, 4)
+sprite_frames = ExtResource("3_272bh")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.86105025
+offset = Vector2(0, -23)
+flip_h = true
+metadata/_tc_uuid = "2391150103803664829"
+
+[node name="CharacterBase" type="ColorRect" parent="." unique_id=2107017007]
+layout_mode = 1
+offset_left = 920.0
+offset_top = 610.0
+offset_right = 1120.0
+offset_bottom = 612.0
+mouse_filter = 2
+color = Color(0.2, 0.8, 1, 0.3)
+metadata/_tc_uuid = "3789379129029633014"
+
+[node name="CharacterBaseCore" type="ColorRect" parent="." unique_id=861969265]
+layout_mode = 1
+offset_left = 970.0
+offset_top = 610.0
+offset_right = 1060.0
+offset_bottom = 611.0
+mouse_filter = 2
+color = Color(0.6, 1, 1, 0.6)
+metadata/_tc_uuid = "3749777806646657269"
+
+[node name="CharacterLabel" type="Label" parent="." unique_id=1228380690]
+layout_mode = 1
+offset_left = 860.0
+offset_top = 620.0
+offset_right = 1160.0
+offset_bottom = 642.0
+theme_override_colors/font_color = Color(0.6, 0.9, 1, 0.6)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "OFFICER // RED"
+horizontal_alignment = 1
+metadata/_tc_uuid = "4114572338671383937"
+
+[node name="SystemTag" type="Label" parent="." unique_id=202409574]
+layout_mode = 1
+offset_left = 26.0
+offset_top = 22.0
+offset_right = 560.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.5, 0.85, 1, 0.55)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "DIMENSION POLICE // TERMINAL 07"
+metadata/_tc_uuid = "1023312546104546112"
+
+[node name="StatusTag" type="Label" parent="." unique_id=791038979]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_top = 22.0
+offset_right = -26.0
+offset_bottom = 44.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.4, 1, 0.75, 0.65)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "● LINK STABLE"
+horizontal_alignment = 2
+metadata/_tc_uuid = "2017312671577640450"
+
+[node name="TitleBlock" type="VBoxContainer" parent="." unique_id=1779858302]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 42.0
+offset_bottom = 252.0
+grow_horizontal = 2
+theme_override_constants/separation = 8
+alignment = 1
+metadata/_tc_uuid = "3051979003088036441"
+
+[node name="Title" type="RichTextLabel" parent="TitleBlock" unique_id=1364519544]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.3, 0.85, 1, 0.6)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 10
+theme_override_fonts/normal_font = SubResource("SystemFont_bold")
+theme_override_font_sizes/normal_font_size = 42
+bbcode_enabled = true
+text = "[center][color=#ff3366]DIMENSION[/color]  [color=#00ffff]LAW ENFORCER[/color][/center]"
+fit_content = true
+scroll_active = false
+metadata/_tc_uuid = "1361665459351364390"
+
+[node name="Subtitle" type="Label" parent="TitleBlock" unique_id=920157376]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.95, 1, 0.95)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 21
+text = "维度执法者 · 罪证移交行动"
+horizontal_alignment = 1
+metadata/_tc_uuid = "1533667041103094769"
+
+[node name="Tagline" type="Label" parent="TitleBlock" unique_id=1352794878]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.68, 0.88, 0.95)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 15
+text = "一把改写维度的枪，一段必须亲手送达的证据。"
+horizontal_alignment = 1
+autowrap_mode = 2
+metadata/_tc_uuid = "8917326063400228376"
+
+[node name="TitleRule" type="Label" parent="TitleBlock" unique_id=26904127]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 0.45)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 12
+text = "——  ◆  ——"
+horizontal_alignment = 1
+metadata/_tc_uuid = "6542772320113025962"
+
+[node name="MenuPanel" type="PanelContainer" parent="." unique_id=1792883466]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -235.0
+offset_top = -70.0
+offset_right = 235.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("CyberBox_panel")
+metadata/_tc_uuid = "1441734641848856109"
+
+[node name="MenuLayout" type="VBoxContainer" parent="MenuPanel" unique_id=1874206377]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+metadata/_tc_uuid = "1276918854453057626"
+
+[node name="PanelHeader" type="Label" parent="MenuPanel/MenuLayout" unique_id=908835926]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.9, 1, 0.6)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "SYSTEM // MAIN MENU"
+metadata/_tc_uuid = "6461961813736317211"
+
+[node name="PanelRule" type="ColorRect" parent="MenuPanel/MenuLayout" unique_id=830323077]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.25, 0.85, 1, 0.35)
+metadata/_tc_uuid = "7310434873826469298"
+
+[node name="Buttons" type="VBoxContainer" parent="MenuPanel/MenuLayout" unique_id=131507328]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+metadata/_tc_uuid = "3225787269916851511"
+
+[node name="StartButton" type="Button" parent="MenuPanel/MenuLayout/Buttons" unique_id=1131068931]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(330, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("CyberBox_btn_n")
+theme_override_styles/pressed = SubResource("CyberBox_btn_p")
+theme_override_styles/hover = SubResource("CyberBox_btn_h")
+theme_override_styles/focus = SubResource("CyberBox_btn_f")
+text = "> 开始游戏"
+metadata/_tc_uuid = "3115855934048918914"
+
+[node name="SettingsButton" type="Button" parent="MenuPanel/MenuLayout/Buttons" unique_id=1432477435]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(330, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.9, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("CyberBox_btn_n")
+theme_override_styles/pressed = SubResource("CyberBox_btn_p")
+theme_override_styles/hover = SubResource("CyberBox_btn_h")
+theme_override_styles/focus = SubResource("CyberBox_btn_f")
+text = "设置"
+metadata/_tc_uuid = "9179316225465681513"
+
+[node name="QuitButton" type="Button" parent="MenuPanel/MenuLayout/Buttons" unique_id=1139958172]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(330, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.78, 0.84, 1)
+theme_override_colors/font_focus_color = Color(1, 0.9, 0.93, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("CyberBox_exit_n")
+theme_override_styles/pressed = SubResource("CyberBox_exit_p")
+theme_override_styles/hover = SubResource("CyberBox_exit_h")
+theme_override_styles/focus = SubResource("CyberBox_exit_f")
+text = "退出"
+metadata/_tc_uuid = "1786575608458982467"
+
+[node name="PanelFooter" type="Label" parent="MenuPanel/MenuLayout" unique_id=1565710684]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.55, 0.75, 0.65)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 10
+text = "CASE 07 // DIMENSION BREACH"
+horizontal_alignment = 1
+metadata/_tc_uuid = "2580491625142082684"
+
+[node name="HintLabel" type="Label" parent="." unique_id=1560527757]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -42.0
+offset_right = 240.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.58, 0.66, 0.85, 0.65)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 12
+text = "↑↓ 选择 // ENTER 确认 // ESC 退出"
+horizontal_alignment = 1
+metadata/_tc_uuid = "3800850753975117195"
+
+[node name="VersionLabel" type="Label" parent="." unique_id=1459410909]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 22.0
+offset_top = -42.0
+offset_right = 340.0
+offset_bottom = -20.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.55, 0.6, 0.85, 0.55)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "VER 0.1.0 // 开发预览"
+metadata/_tc_uuid = "3632402066759410541"
+
+[node name="CopyrightLabel" type="Label" parent="." unique_id=1531809925]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -42.0
+offset_right = -22.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.55, 0.6, 0.85, 0.55)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "© 2077 维度执法局 // DIMENSION POLICE"
+horizontal_alignment = 2
+metadata/_tc_uuid = "623284223087282032"
+
+[node name="ScanlineOverlay" type="ColorRect" parent="." unique_id=1327827803]
+material = SubResource("ShaderMaterial_scan")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_tc_uuid = "243733508189710339"
+
+[node name="ToastLabel" type="Label" parent="." unique_id=1229460211]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 60.0
+offset_right = 300.0
+offset_bottom = 96.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.75)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 17
+text = "……"
+horizontal_alignment = 1
+metadata/_tc_uuid = "6671960962755414759"
+
+[node name="ExitScreen" type="Control" parent="." unique_id=168774299]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+metadata/_tc_uuid = "1987249540444860074"
+
+[node name="ExitBG" type="ColorRect" parent="ExitScreen" unique_id=1575587592]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.008, 0.008, 0.02, 1)
+metadata/_tc_uuid = "8662232683223522687"
+
+[node name="ExitText" type="Label" parent="ExitScreen" unique_id=1324867297]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -50.0
+offset_right = 320.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_colors/font_outline_color = Color(1, 0.2, 0.4, 0.4)
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 30
+text = "GOODBYE, OFFICER."
+horizontal_alignment = 1
+metadata/_tc_uuid = "7691491500353062935"
+
+[node name="ExitSub" type="Label" parent="ExitScreen" unique_id=519126175]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -8.0
+offset_right = 320.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.85, 0.8)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 14
+text = "// 窗口即将关闭 //"
+horizontal_alignment = 1
+metadata/_tc_uuid = "4919638798672230079"
+
+[node name="ExitBar" type="ColorRect" parent="ExitScreen" unique_id=682408239]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 32.0
+offset_right = 120.0
+offset_bottom = 34.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(0, 1)
+color = Color(1, 0.2, 0.4, 1)
+metadata/_tc_uuid = "5787550497649978747"
