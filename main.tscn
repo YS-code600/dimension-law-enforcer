@@ -242,7 +242,7 @@ offset_bottom = 642.0
 theme_override_colors/font_color = Color(0.7, 0.92, 1, 0.6)
 theme_override_fonts/font = SubResource("SystemFont_ui")
 theme_override_font_sizes/font_size = 11
-text = "SUBJECT // WIZARD"
+text = "SUBJECT // DEEPSEEK"
 horizontal_alignment = 1
 metadata/_tc_uuid = "2800740229881021638"
 

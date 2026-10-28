@@ -34,7 +34,7 @@ const DEFEAT_LINES := [
 const REPEAT_LINES := ["放弃吧", "可笑", "没用的"]
 
 @onready var _player: Node2D = $Player
-@onready var _npc: Node2D = $VioletCompanion
+@onready var _npc: Node2D = $WizardBoss
 
 var _fade: ColorRect
 var _boss_bar: Node

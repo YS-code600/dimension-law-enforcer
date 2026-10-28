@@ -32,6 +32,10 @@ func _fit_text() -> void:
 	var body_size := 18 if compact else 24
 	var title_size := 40 if compact else 52
 	text.add_theme_constant_override("line_separation", 6 if compact else 10)
+	# 黑底字幕已删除
+	text.text = ""
+	text.visible = false
+	return
 	text.text = "[center][font_size=%d][color=#bfefff]你好[/color][/font_size][/center]\n[center][font_size=%d][color=#dce2ea]%s[/color][/font_size][/center]" % [title_size, body_size, BODY]
 
 

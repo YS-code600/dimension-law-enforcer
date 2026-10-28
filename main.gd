@@ -4,9 +4,8 @@ extends Control
 const GAME_SCENE := "res://levels/game.tscn"
 const INTRO_SCENE := "res://intro.tscn"
 const FONT_NAMES := ["Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei"]
-const WIZARD_DIR := "res://levels/npc/wizard/"
-const WIZARD_FRAME := Vector2(64, 64)
-const WIZARD_IDLE_FRAMES := 6
+const GIRL_IDLE := "res://levels/npc/deepseek_girl/idle.png"
+const GIRL_IDLE_FPS := 20.0
 
 @onready var start_button: Button = %StartButton
 @onready var settings_button: Button = %SettingsButton
@@ -32,41 +31,65 @@ func _ready() -> void:
 	_setup_button_prefix(settings_button, "设置")
 	_setup_button_prefix(quit_button, "退出")
 	start_button.grab_focus()
-	_build_wizard_preview()
+	_build_companion_preview()
 	_play_intro()
 	_animate_violet()
 
 
-## 主界面左侧预览:换成蓝帽法师的待机动画。
-func _build_wizard_preview() -> void:
+## 主界面左侧预览:同行者(deepseek girl)的待机动画。
+func _build_companion_preview() -> void:
 	if violet_preview == null:
 		return
-	var tex := load(WIZARD_DIR + "idle.png") as Texture2D
+	var tex := _load_texture(GIRL_IDLE)
 	if tex == null:
 		return
+	var cell := float(tex.get_height())
+	var count := int(tex.get_width() / cell)
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 	frames.add_animation("idle")
-	frames.set_animation_speed("idle", 8.0)
+	frames.set_animation_speed("idle", GIRL_IDLE_FPS)
 	frames.set_animation_loop("idle", true)
-	for i in WIZARD_IDLE_FRAMES:
+	for i in count:
 		var atlas := AtlasTexture.new()
 		atlas.atlas = tex
-		atlas.region = Rect2(WIZARD_FRAME.x * float(i), 0.0, WIZARD_FRAME.x, WIZARD_FRAME.y)
+		atlas.region = Rect2(cell * float(i), 0.0, cell, cell)
 		frames.add_frame("idle", atlas)
 	violet_preview.sprite_frames = frames
+	violet_preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	violet_preview.scale = Vector2(1.5, 1.5)
+	violet_preview.offset = Vector2(0, -56)
 	violet_preview.play(&"idle")
 
 
+## 有导入缓存就正常加载;没有就直接读原始 PNG(编辑器尚未导入时)。
+func _load_texture(path: String) -> Texture2D:
+	if FileAccess.file_exists(path + ".import"):
+		var tex := load(path) as Texture2D
+		if tex != null:
+			return tex
+	var img := Image.new()
+	if img.load(path) == OK:
+		return ImageTexture.create_from_image(img)
+	return load(path) as Texture2D
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key := event as InputEventKey
+		if key.pressed and not key.echo \
+				and (key.keycode == KEY_EQUAL or key.unicode == 43 \
+				or key.physical_keycode == KEY_KP_ADD):
+			get_viewport().set_input_as_handled()
+			get_tree().change_scene_to_file("res://levels/fire_room.tscn")
+			return
 	if event.is_action_pressed("ui_cancel") and not (_settings_dialog and _settings_dialog.visible):
 		_on_quit_pressed()
 
 
 func _on_start_pressed() -> void:
-	var packed := load(INTRO_SCENE) as PackedScene
-	if packed == null:
-		packed = load(GAME_SCENE) as PackedScene
+	# 跳过黑底字幕开场,直接进入关卡
+	var packed := load(GAME_SCENE) as PackedScene
 	if packed != null:
 		get_tree().change_scene_to_packed(packed)
 	else:

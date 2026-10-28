@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d14f06b2n857p"
-path="res://.godot/imported/main_menu_wizard.png-7248dca0b7d7964081110c5c83a7fdf5.ctex"
+uid="uid://blw5fv8pwixh"
+path="res://.godot/imported/companion_girl.png-b6b7e9a25f402fccdc9b3760d83dac94.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/main_menu_wizard.png"
-dest_files=["res://.godot/imported/main_menu_wizard.png-7248dca0b7d7964081110c5c83a7fdf5.ctex"]
+source_file="res://docs/companion_girl.png"
+dest_files=["res://.godot/imported/companion_girl.png-b6b7e9a25f402fccdc9b3760d83dac94.ctex"]
 
 [params]
 

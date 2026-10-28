@@ -1084,6 +1084,7 @@ var _raid_alert := false
 var _raid_label: Label
 var _roam_target := Vector2.ZERO
 var _roam_timer := 0.0
+var _roam_dir := 1.0
 var _blink_cd := 5.0
 
 
@@ -1091,7 +1092,9 @@ func _setup_fire_room() -> void:
 	var room := get_parent()
 	if room == null or room.name != "FireRoom":
 		return
-	var boss := room.get_node_or_null("VioletCompanion") as Node2D
+	var boss := room.get_node_or_null("WizardBoss") as Node2D
+	if boss == null:
+		boss = room.get_node_or_null("VioletCompanion") as Node2D
 	if boss == null:
 		return
 	_raid_mode = true
@@ -1161,6 +1164,7 @@ func _raid_tanks_alive() -> int:
 # ---------------------------------------------------------------- Boss 走位
 
 ## 蓝帽法师在地面走位,并每隔一段时间瞬移(blink)换位置。
+## 法师走位:保持中距离;被逼近时快速后撤,离太远时靠近,并周期性瞬移。
 func _tick_roam(delta: float) -> void:
 	if not _raid_boss.is_visible_in_tree():
 		return
@@ -1169,27 +1173,50 @@ func _tick_roam(delta: float) -> void:
 		_blink_cd = randf_range(BLINK_MIN, BLINK_MAX)
 		_blink_to_new_spot()
 		return
-	_roam_timer -= delta
 	var boss_x := _raid_boss.global_position.x
-	var dx := global_position.x - boss_x
-	if absf(dx) < 200.0 or _roam_timer <= 0.0:
-		_roam_timer = randf_range(1.2, 2.4)
-		var away := -1.0 if dx > 0.0 else 1.0
-		var next_x := boss_x + away * randf_range(170.0, 330.0)
-		_roam_target = Vector2(clampf(next_x, ROAM_MIN_X, ROAM_MAX_X), ROAM_Y)
-	var step := clampf(_roam_target.x - boss_x, -ROAM_SPEED * delta, ROAM_SPEED * delta)
-	_raid_boss.global_position = Vector2(boss_x + step, ROAM_Y)
+	var gap := boss_x - global_position.x
+	var dist := absf(gap)
+	var dir := signf(gap) if dist > 1.0 else 1.0
+	var speed := ROAM_SPEED
+	if dist < 230.0:
+		# 太近:朝远离主角的方向快速后撤
+		speed = ROAM_SPEED * 2.1
+		_roam_target = Vector2(clampf(boss_x + dir * 260.0, ROAM_MIN_X, ROAM_MAX_X), ROAM_Y)
+	elif dist > 560.0:
+		# 太远:加速靠近
+		speed = ROAM_SPEED * 1.5
+		_roam_target = Vector2(clampf(boss_x - dir * 220.0, ROAM_MIN_X, ROAM_MAX_X), ROAM_Y)
+	else:
+		# 中距离:左右缓慢游走,定期换向
+		_roam_timer -= delta
+		if _roam_timer <= 0.0 or absf(_roam_target.x - boss_x) < 10.0:
+			_roam_timer = randf_range(1.4, 2.6)
+			_roam_dir = -_roam_dir
+			var next_x := boss_x + _roam_dir * randf_range(90.0, 190.0)
+			_roam_target = Vector2(clampf(next_x, ROAM_MIN_X, ROAM_MAX_X), ROAM_Y)
+	var step := clampf(_roam_target.x - boss_x, -speed * delta, speed * delta)
+	var nx := clampf(boss_x + step, ROAM_MIN_X, ROAM_MAX_X)
+	_raid_boss.global_position = Vector2(nx, ROAM_Y)
+	if (nx <= ROAM_MIN_X + 0.5 and step < 0.0) or (nx >= ROAM_MAX_X - 0.5 and step > 0.0):
+		_roam_dir = -_roam_dir
+		_roam_target = Vector2(nx - step * 4.0, ROAM_Y)
 
 
-## 瞬移到离主角较远、且离当前位置有明显距离的落点。
+## 瞬移到远离主角的一侧,且离当前位置有明显距离。
 func _blink_to_new_spot() -> void:
-	var target_x := randf_range(ROAM_MIN_X, ROAM_MAX_X)
-	for i in 6:
-		var far_from_player := absf(target_x - global_position.x) > 260.0
-		var far_from_self := absf(target_x - _raid_boss.global_position.x) > 220.0
+	var prefer_left := global_position.x < RAID_ROOM_WIDTH * 0.5
+	var lo := ROAM_MIN_X + 60.0
+	var hi := ROAM_MAX_X - 60.0
+	var mid := (lo + hi) * 0.5
+	var target_x := randf_range(lo, mid) if prefer_left else randf_range(mid, hi)
+	for i in 12:
+		var far_from_player := absf(target_x - global_position.x) > 300.0
+		var far_from_self := absf(target_x - _raid_boss.global_position.x) > 240.0
 		if far_from_player and far_from_self:
 			break
-		target_x = randf_range(ROAM_MIN_X, ROAM_MAX_X)
+		target_x = randf_range(lo, mid) if prefer_left else randf_range(mid, hi)
+	if absf(target_x - global_position.x) < 280.0:
+		target_x = ROAM_MAX_X - 40.0 if prefer_left else ROAM_MIN_X + 40.0
 	var target := Vector2(target_x, ROAM_Y)
 	if _raid_boss.has_method("blink_to"):
 		_raid_boss.call("blink_to", target)
@@ -1232,8 +1259,6 @@ func _build_raid_label() -> void:
 
 
 func _update_raid_label() -> void:
-	if _raid_label == null:
-		return
 	_raid_label.visible = true
 	var alert := _raid_warn > 0.0
 	if alert != _raid_alert:

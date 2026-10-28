@@ -10,7 +10,6 @@
 [ext_resource type="PackedScene" path="res://levels/props/wood_cover.tscn" id="11_wood"]
 [ext_resource type="PackedScene" path="res://levels/enemies/enemy_melee.tscn" id="12_enemy"]
 [ext_resource type="PackedScene" path="res://levels/enemies/enemy_gunman.tscn" id="13_gunner"]
-[ext_resource type="PackedScene" path="res://levels/hazards/laser.tscn" id="14_laser"]
 [ext_resource type="PackedScene" path="res://levels/goal/extraction.tscn" id="15_extraction"]
 [ext_resource type="Script" path="res://levels/npc/companion_dialogue.gd" id="16_dialogue"]
 
@@ -457,6 +456,7 @@ position = Vector2(11150, 656)
 
 [node name="VioletCompanion" parent="." instance=ExtResource("9_npc")]
 position = Vector2(3050, 606)
+art = "girl"
 
 [node name="Dialogue" type="Node2D" parent="VioletCompanion"]
 script = ExtResource("16_dialogue")
@@ -535,9 +535,6 @@ position = Vector2(10050, 656)
 
 [node name="Gunner_11500" parent="." instance=ExtResource("13_gunner")]
 position = Vector2(11500, 656)
-
-[node name="Laser_5000" parent="." instance=ExtResource("14_laser")]
-position = Vector2(5000, 656)
 
 [node name="Extraction" parent="." instance=ExtResource("15_extraction")]
 position = Vector2(11950, 656)

@@ -16,17 +16,8 @@ func _ready() -> void:
 
 ## world_pos: 气泡的尖端对准的世界坐标(通常是角色头顶)。duration 为显示秒数。
 func show_line(text: String, world_pos: Vector2, duration := DURATION) -> void:
-	_ensure_ui()
-	_label.text = text
-	_panel.visible = true
-	_panel.reset_size()
-	await get_tree().process_frame
-	var screen: Vector2 = get_viewport().get_canvas_transform() * world_pos
-	var view: Vector2 = get_viewport().get_visible_rect().size
-	var x := clampf(screen.x - _panel.size.x * 0.5, 8.0, maxf(8.0, view.x - _panel.size.x - 8.0))
-	var y := clampf(screen.y - _panel.size.y - 8.0, 8.0, maxf(8.0, view.y - _panel.size.y - 8.0))
-	_panel.position = Vector2(x, y)
-	_timer = maxf(duration, 0.2)
+	# 关卡内不显示任何文字
+	return
 
 
 func _process(delta: float) -> void:

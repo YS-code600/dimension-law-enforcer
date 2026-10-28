@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://levels/enemies/wizard_boss.gd" id="1_boss"]
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.45, 0.7, 1, 0.34, 0.25, 0.45, 0.95, 0.12, 0.15, 0.3, 0.7, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[node name="WizardBoss" type="Node2D"]
+z_index = 4
+script = ExtResource("1_boss")
+
+[node name="Glow" type="Sprite2D" parent="."]
+z_index = -1
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -52)
+scale = Vector2(0.95, 0.95)
+modulate = Color(0.6, 0.8, 1, 0.28)
+texture = SubResource("GradientTexture2D_glow")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(3, 3)
+offset = Vector2(0, -16)

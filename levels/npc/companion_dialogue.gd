@@ -43,41 +43,6 @@ func _say() -> void:
 	if _fired:
 		return
 	_fired = true
+	# 关卡内不显示文字(仅保留控制台记录)
 	print(message)
 
-	var font := SystemFont.new()
-	font.font_names = PackedStringArray([
-		"Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC",
-		"Noto Sans CJK SC", "PingFang SC", "SimHei",
-	])
-
-	var label := Label.new()
-	label.name = "SystemLine"
-	label.text = message
-	label.position = head_offset + Vector2(-bubble_width * 0.5, 0.0)
-	label.size = Vector2(bubble_width, 64.0)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.z_index = 20
-	label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", 15)
-	label.add_theme_color_override("font_color", Color(0.72, 0.95, 1.0, 1.0))
-	label.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.10, 0.95))
-	label.add_theme_constant_override("outline_size", 6)
-	label.modulate.a = 0.0
-	label.visible_characters = 0
-	add_child(label)
-
-	var chars := float(label.text.length())
-	var type_time := maxf(0.35, chars / maxf(type_speed, 1.0))
-	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(label, "modulate:a", 1.0, 0.18)
-	tw.tween_property(label, "position:y", head_offset.y - 14.0, type_time + 0.4) \
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tw.tween_property(label, "visible_characters", int(chars), type_time)
-	tw.chain().tween_interval(hold_time)
-	tw.chain().tween_property(label, "modulate:a", 0.0, 0.5)
-	tw.chain().tween_callback(label.queue_free)

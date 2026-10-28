@@ -36,6 +36,18 @@ func _ready() -> void:
 	_bind_player.call_deferred()
 
 
+## 关卡内不显示文字:隐藏所有 Label,清空按钮文字。
+func _hide_texts(node: Node) -> void:
+	for child in node.get_children():
+		if child is Label:
+			(child as Label).visible = false
+		elif child is RichTextLabel:
+			(child as RichTextLabel).visible = false
+		elif child is Button:
+			(child as Button).text = ""
+		_hide_texts(child)
+
+
 func _bind_player() -> void:
 	var player := get_parent().get_node_or_null("Player") as Node
 	if player == null:
