@@ -88,8 +88,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_start_pressed() -> void:
-	# 跳过黑底字幕开场,直接进入关卡
-	var packed := load(GAME_SCENE) as PackedScene
+	# 先进入黑幕 gal 简报，再由简报进入关卡（world_main）。
+	var packed := load(INTRO_SCENE) as PackedScene
+	if packed == null:
+		packed = load(GAME_SCENE) as PackedScene
 	if packed != null:
 		get_tree().change_scene_to_packed(packed)
 	else:

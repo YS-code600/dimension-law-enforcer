@@ -53,7 +53,8 @@ func _ensure_ui() -> void:
 	_root.name = "BossRoot"
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_root.offset_bottom = 76.0
+	_root.offset_top = 6.0
+	_root.offset_bottom = 82.0
 	_root.visible = false
 	add_child(_root)
 

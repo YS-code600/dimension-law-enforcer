@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 Music="*res://audio/music_manager.gd"
-McpRuntime="*res://addons/godot-mcp/mcp_runtime.gd"
 
 [display]
 

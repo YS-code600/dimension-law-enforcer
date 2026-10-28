@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://levels/enemies/wizard_boss.gd" id="1_boss"]
 
 [sub_resource type="Gradient" id="Gradient_glow"]
-offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.45, 0.7, 1, 0.34, 0.25, 0.45, 0.95, 0.12, 0.15, 0.3, 0.7, 0)
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.55, 0.8, 1, 0.4, 0.45, 0.35, 1, 0.15, 0.1, 0.15, 0.4, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
 gradient = SubResource("Gradient_glow")
@@ -19,17 +19,24 @@ blend_mode = 1
 
 [node name="WizardBoss" type="Node2D"]
 z_index = 4
+process_priority = 1000
 script = ExtResource("1_boss")
 
 [node name="Glow" type="Sprite2D" parent="."]
-z_index = -1
+z_index = -2
 material = SubResource("CanvasItemMaterial_add")
-position = Vector2(0, -52)
-scale = Vector2(0.95, 0.95)
+position = Vector2(0, 10)
+scale = Vector2(1.25, 1.25)
 modulate = Color(0.6, 0.8, 1, 0.28)
 texture = SubResource("GradientTexture2D_glow")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="."]
+[node name="Shadow" type="Sprite2D" parent="."]
+z_index = -1
+position = Vector2(0, 160)
+scale = Vector2(1.15, 0.28)
+modulate = Color(0.02, 0.02, 0.05, 0.9)
+texture = SubResource("GradientTexture2D_glow")
+
+[node name="Body" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
-scale = Vector2(3, 3)
-offset = Vector2(0, -16)
+scale = Vector2(6, 6)

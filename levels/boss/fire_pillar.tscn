@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://boss_fire_pillar_001"]
+
+[ext_resource type="Script" path="res://levels/boss/fire_pillar.gd" id="1_fire"]
+
+[node name="FirePillar" type="Node2D"]
+script = ExtResource("1_fire")

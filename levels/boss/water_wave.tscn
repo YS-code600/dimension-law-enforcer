@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://boss_water_wave_001"]
+
+[ext_resource type="Script" path="res://levels/boss/water_wave.gd" id="1_water"]
+
+[node name="WaterWave" type="Node2D"]
+script = ExtResource("1_water")

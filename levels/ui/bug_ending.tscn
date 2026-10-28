@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://bug_ending_001"]
+
+[ext_resource type="Script" path="res://levels/ui/bug_ending.gd" id="1_ending"]
+
+[node name="BugEnding" type="CanvasLayer"]
+layer = 50
+script = ExtResource("1_ending")

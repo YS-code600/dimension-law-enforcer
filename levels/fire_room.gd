@@ -6,6 +6,7 @@ extends Node2D
 const FLOOR_TILE := preload("res://levels/hazards/fire_room_ground.png")
 const BOSS_BAR_SCRIPT := preload("res://levels/ui/boss_bar.gd")
 const DIALOGUE_SCRIPT := preload("res://levels/ui/boss_dialogue.gd")
+const BUG_ENDING := preload("res://levels/ui/bug_ending.tscn")
 const BG_BLUR := preload("res://shaders/bg_blur.gdshader")
 const VOID_SCENE := "res://levels/void_room.tscn"
 const PLAYER_BASE_FRAMES := preload("res://player/red_frames.tres")
@@ -14,6 +15,7 @@ const PISTOL_BANG := preload("res://audio/explosions/grenade_bang.ogg")
 const BGM_PATH := "res://audio/music/level3.ogg"
 const BGM_DB := -8.0
 const GROUND_Y := 600.0
+const BOSS_FLY_Y := 440.0
 const ROOM_SIZE := Vector2(1152, 648)
 const REVEAL_TINT := Color(0.55, 0.9, 1.0)
 const REVEAL_NORMAL := Color(1, 1, 1)
@@ -44,6 +46,7 @@ var _pistol_unlocked := false
 var _self_shot_done := false
 var _defeats := 0
 var _intro_done := false
+var _bug_ending_started := false
 
 
 func _ready() -> void:
@@ -75,7 +78,7 @@ func _play_intro() -> void:
 	await get_tree().create_timer(1.0).timeout
 	if _npc.has_method("set_following"):
 		_npc.call("set_following", false)
-	var target := Vector2(ROOM_SIZE.x - 190.0, GROUND_Y - 2.0)
+	var target := Vector2(ROOM_SIZE.x - 190.0, BOSS_FLY_Y)
 	var glide := create_tween()
 	glide.tween_property(_npc, "global_position", target, 2.2) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -91,18 +94,32 @@ func _play_intro() -> void:
 	if _npc.has_method("become_hostile"):
 		_npc.call("become_hostile")
 	if _boss_bar != null and _boss_bar.has_method("bind"):
-		_boss_bar.call("bind", _npc, "衍月")
+		_boss_bar.call("bind", _npc, "豆包")
 	if not _npc.is_connected("defeated", _on_boss_defeated):
 		_npc.connect("defeated", _on_boss_defeated)
 	if not _npc.is_connected("revived", _on_boss_revived):
 		_npc.connect("revived", _on_boss_revived)
 
 
-## 击败衍月:回满血量,并开始 2 秒的背景切换演出。
+## 击败豆包:前两次回满血量并切背景;第三次进入真结局。
 func _on_boss_defeated() -> void:
 	_defeats += 1
+	if _defeats >= 3:
+		_start_bug_ending()
+		return
 	_heal_player()
 	_start_background_transition(_defeats)
+
+
+## 第三次击败后:停止 Boss 复活,弹出最后一段对话,再黑屏回主菜单。
+func _start_bug_ending() -> void:
+	if _bug_ending_started:
+		return
+	_bug_ending_started = true
+	if _npc != null and _npc.has_method("stop_revive"):
+		_npc.call("stop_revive")
+	var ending := BUG_ENDING.instantiate()
+	add_child(ending)
 
 
 ## 衍月复活(倒地 2 秒后)时才弹出对应台词;从第 3 次循环起,台词念完再给手枪提示。

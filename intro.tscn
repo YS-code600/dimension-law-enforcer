@@ -1,9 +1,49 @@
-[gd_scene load_steps=3 format=3 uid="uid://intro_briefing_001"]
+[gd_scene load_steps=10 format=3 uid="uid://intro_briefing_001"]
 
 [ext_resource type="Script" path="res://intro.gd" id="1_intro"]
+[ext_resource type="Texture2D" path="res://picture/dafeiyu.png" id="2_portrait"]
+[ext_resource type="Shader" path="res://shaders/scanlines.gdshader" id="3_scan"]
 
-[sub_resource type="SystemFont" id="SystemFont_intro"]
+[sub_resource type="SystemFont" id="SystemFont_ui"]
 font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei")
+
+[sub_resource type="SystemFont" id="SystemFont_bold"]
+font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei")
+font_weight = 700
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.35, 0.7, 1)
+colors = PackedColorArray(0.25, 0.7, 1, 0.42, 0.18, 0.5, 0.95, 0.2, 0.08, 0.22, 0.6, 0.07, 0.02, 0.05, 0.2, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_glow"]
+gradient = SubResource("Gradient_glow")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("3_scan")
+shader_parameter/line_spacing = 4.0
+shader_parameter/line_density = 0.16
+shader_parameter/vignette_strength = 0.5
+shader_parameter/flicker_strength = 0.012
+shader_parameter/flicker_speed = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+bg_color = Color(0.012, 0.035, 0.07, 0.93)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.22, 0.78, 1, 0.55)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 12
 
 [node name="Intro" type="Control"]
 layout_mode = 3
@@ -12,54 +52,293 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_intro")
 
-[node name="Black" type="ColorRect" parent="."]
+[node name="Backdrop" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
 mouse_filter = 2
+color = Color(0.006, 0.011, 0.022, 1)
 
-[node name="Text" type="RichTextLabel" parent="."]
+[node name="PortraitGlow" type="TextureRect" parent="."]
+unique_name_in_owner = true
+modulate = Color(0.34, 0.8, 1, 0.5)
+layout_mode = 1
+offset_left = 680.0
+offset_top = -90.0
+offset_right = 1440.0
+offset_bottom = 670.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_glow")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Scanlines" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_scan")
 layout_mode = 1
 anchors_preset = 15
-anchor_left = 0.07
-anchor_top = 0.11
-anchor_right = 0.93
-anchor_bottom = 0.84
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_colors/default_color = Color(0.86, 0.89, 0.93, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
-theme_override_constants/line_separation = 10
-theme_override_constants/outline_size = 4
-theme_override_fonts/normal_font = SubResource("SystemFont_intro")
-theme_override_font_sizes/normal_font_size = 24
-bbcode_enabled = true
-scroll_active = false
 
-[node name="Prompt" type="Label" parent="."]
+[node name="Trace" type="Label" parent="."]
+modulate = Color(1, 1, 1, 0.55)
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
+offset_left = 48.0
+offset_top = 148.0
+offset_right = 520.0
+offset_bottom = 236.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.32, 0.68, 0.82, 1)
+theme_override_constants/line_spacing = 6
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "> TRACE: player.clip_through_wall
+> TRACE: boss.hp = -999
+> TRACE: save_file.not_found
+> TRACE: menu.crash_on_hover"
+
+[node name="PortraitLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -64.0
-offset_right = 300.0
-offset_bottom = -24.0
 grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
-theme_override_constants/outline_size = 5
-theme_override_fonts/font = SubResource("SystemFont_intro")
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="PortraitLayer"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_left = 840.0
+offset_top = 66.0
+offset_right = 1280.0
+offset_bottom = 506.0
+mouse_filter = 2
+texture = ExtResource("2_portrait")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SparkleA" type="Label" parent="PortraitLayer"]
+unique_name_in_owner = true
+modulate = Color(0.65, 0.95, 1, 0.6)
+layout_mode = 1
+offset_left = 790.0
+offset_top = 96.0
+offset_right = 838.0
+offset_bottom = 136.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.95, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 24
+text = "✦"
+
+[node name="SparkleB" type="Label" parent="PortraitLayer"]
+unique_name_in_owner = true
+modulate = Color(1, 0.62, 0.76, 0.55)
+layout_mode = 1
+offset_left = 1216.0
+offset_top = 106.0
+offset_right = 1264.0
+offset_bottom = 146.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.62, 0.76, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 21
+text = "✧"
+
+[node name="Brand" type="HBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 48.0
+offset_top = 26.0
+offset_right = 760.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="BrandBug" type="Label" parent="Brand"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.37, 0.55, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
 theme_override_font_sizes/font_size = 16
-text = "按 Enter 进入游戏"
-horizontal_alignment = 1
+text = "BUG"
+
+[node name="BrandName" type="Label" parent="Brand"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.92, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 16
+text = "修复大作战"
+
+[node name="BrandSub" type="Label" parent="Brand"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.5, 0.58, 1)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 10
+text = "// PRE-MISSION BRIEFING"
+vertical_alignment = 1
+
+[node name="TopRule" type="ColorRect" parent="."]
+layout_mode = 1
+offset_left = 48.0
+offset_top = 60.0
+offset_right = 1232.0
+offset_bottom = 61.0
+mouse_filter = 2
+color = Color(0.25, 0.8, 1, 0.18)
+
+[node name="Status" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 28.0
+offset_right = -48.0
+offset_bottom = 50.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.7, 0.8)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 10
+text = "● DEBUG LINK ONLINE"
+horizontal_alignment = 2
+
+[node name="Dialog" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_top = 0.69
+anchor_right = 0.965
+anchor_bottom = 0.955
+offset_left = 44.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="Dialog"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 12
+
+[node name="Content" type="VBoxContainer" parent="Dialog/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 7
+alignment = 1
+
+[node name="SpeakerRow" type="HBoxContainer" parent="Dialog/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="Accent" type="ColorRect" parent="Dialog/Margin/Content/SpeakerRow"]
+custom_minimum_size = Vector2(4, 24)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(0.35, 0.9, 1, 1)
+
+[node name="SpeakerName" type="Label" parent="Dialog/Margin/Content/SpeakerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.64, 0.95, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 22
+text = "大肥鱼"
+
+[node name="SpeakerRole" type="Label" parent="Dialog/Margin/Content/SpeakerRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.62, 0.74, 1)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 10
+text = "// DEBUG NAVI"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="Dialog/Margin/Content/SpeakerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Progress" type="Label" parent="Dialog/Margin/Content/SpeakerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.34, 0.52, 0.6, 1)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "01 / 06"
+vertical_alignment = 1
+
+[node name="Divider" type="ColorRect" parent="Dialog/Margin/Content"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.25, 0.8, 1, 0.2)
+
+[node name="Body" type="RichTextLabel" parent="Dialog/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 84)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.85, 0.94, 0.99, 1)
+theme_override_constants/line_separation = 9
+theme_override_fonts/normal_font = SubResource("SystemFont_ui")
+theme_override_font_sizes/normal_font_size = 21
+bbcode_enabled = true
+text = "喂喂——能听到吗？我是大肥鱼，你的专属 Debug 导航员！"
+scroll_active = false
+visible_characters = 0
+
+[node name="Footer" type="HBoxContainer" parent="Dialog/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="Dialog/Margin/Content/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.32, 0.46, 0.56, 1)
+theme_override_fonts/font = SubResource("SystemFont_ui")
+theme_override_font_sizes/font_size = 11
+text = "点击 / 空格 / Enter 继续   ·   ESC 跳过"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="Dialog/Margin/Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="ContinueArrow" type="Label" parent="Dialog/Margin/Content/Footer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_fonts/font = SubResource("SystemFont_bold")
+theme_override_font_sizes/font_size = 15
+text = "▼"
+vertical_alignment = 1
+
+[node name="Voice" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+volume_db = 0.0
+
+[node name="Fade" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
