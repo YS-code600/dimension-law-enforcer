@@ -18,14 +18,9 @@ const ROOM_SIZE := Vector2(1152, 648)
 const REVEAL_TINT := Color(0.55, 0.9, 1.0)
 const REVEAL_NORMAL := Color(1, 1, 1)
 
-## 每击败衍月一次,背景按这个顺序循环切换。
+## 背景使用 Kenney 橙色沙漠场景(每次击败衍月仍会走一遍切换演出,画面不变)。
 const BG_PATHS := [
-	"res://picture/fire_room_bg/01_pink_city.png",
-	"res://picture/fire_room_bg/02_orange_silhouette.png",
-	"res://picture/fire_room_bg/03_blue_night.png",
-	"res://picture/fire_room_bg/04_pixel_city.png",
-	"res://picture/fire_room_bg/05_rain_city.jpg",
-	"res://picture/fire_room_bg/06_pixel_city_orange.png",
+	"res://picture/fire_room_bg/07_kenney_desert.png",
 ]
 const DEFEAT_LINES := [
 	"在平行时空穿越的你，是无法击败操控平行时空的我的",
@@ -223,7 +218,7 @@ func _start_background_transition(index: int) -> void:
 		return
 	_transitioning = true
 	var path: String = BG_PATHS[index % BG_PATHS.size()]
-	var next_tex := load(path) as Texture2D
+	var next_tex := _load_texture(path)
 	if _bg_mat != null:
 		var blur := create_tween()
 		blur.tween_method(func(v: float) -> void: _bg_mat.set_shader_parameter("blur_amount", v), 0.0, 1.0, 0.8)
@@ -398,11 +393,22 @@ func _ensure_background() -> void:
 	_bg.material = _bg_mat
 	layer.add_child(_bg)
 	_bg.size = get_viewport().get_visible_rect().size
-	_bg.texture = load(BG_PATHS[0])
+	_bg.texture = _load_texture(BG_PATHS[0])
 	get_viewport().size_changed.connect(_fit_background)
 	# 背景图铺满后,Sky 色块就不再需要了(它会把图挡住)
 	if _sky != null and _bg.texture != null:
 		_sky.visible = false
+
+
+## 优先走导入资源;导入缓存缺失时直接读 PNG,保证背景不会丢。
+func _load_texture(path: String) -> Texture2D:
+	var tex := load(path) as Texture2D
+	if tex != null:
+		return tex
+	var img := Image.new()
+	if img.load(path) == OK:
+		return ImageTexture.create_from_image(img)
+	return null
 
 
 func _fit_background() -> void:

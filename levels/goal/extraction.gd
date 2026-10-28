@@ -1,10 +1,11 @@
 extends Node2D
-## 终点撤离点:直升机垂下悬梯。带着同行者接触悬梯即胜利。
+## 终点撤离点:地面上的灰色传送门。带着同行者走进传送门即胜利。
 
 const EXPLOSION_FRAMES := preload("res://levels/goal/explosion_frames.tres")
+const PORTAL_PATH := "res://picture/portal_gray.png"
 
 @onready var _zone: Area2D = $Zone
-@onready var _heli: Sprite2D = $Heli
+@onready var _portal: Sprite2D = $Portal
 
 var _t := 0.0
 var _won := false
@@ -13,14 +14,27 @@ var _exploded := false
 
 func _ready() -> void:
 	add_to_group("extraction")
+	_portal.texture = _load_texture(PORTAL_PATH)
 	_zone.body_entered.connect(_on_body_entered)
+
+
+## 优先走导入资源;导入缓存缺失时直接读 PNG。
+func _load_texture(path: String) -> Texture2D:
+	var tex := load(path) as Texture2D
+	if tex != null:
+		return tex
+	var img := Image.new()
+	if img.load(path) == OK:
+		return ImageTexture.create_from_image(img)
+	return null
 
 
 func _physics_process(delta: float) -> void:
 	if _exploded:
 		return
 	_t += delta
-	_heli.position.y = -500.0 + sin(_t * 1.6) * 4.0
+	# 传送门轻微呼吸
+	_portal.scale = Vector2(2.4, 2.4) * (1.0 + sin(_t * 2.2) * 0.03)
 	if _won:
 		return
 	for body in _zone.get_overlapping_bodies():
@@ -55,10 +69,10 @@ func explode() -> void:
 	var anim := AnimatedSprite2D.new()
 	anim.name = "Explosion"
 	anim.sprite_frames = EXPLOSION_FRAMES
-	anim.position = _heli.position + Vector2(0, 60)
+	anim.position = _portal.position + Vector2(0, -30)
 	anim.scale = Vector2(3.6, 3.6)
 	anim.z_index = 20
 	add_child(anim)
 	anim.play(&"explode")
 	anim.animation_finished.connect(anim.queue_free)
-	_heli.visible = false
+	_portal.visible = false

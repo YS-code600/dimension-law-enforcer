@@ -1,10 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ewwa27xmfb03"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_lquwl"]
-[ext_resource type="Texture2D" path="res://levels/npc/deepseek_girl/idle.png" id="2_7mycd"]
-[ext_resource type="SpriteFrames" path="res://player/red_frames.tres" id="3_272bh"]
-[ext_resource type="Script" path="res://scripts/ui/cyber_box.gd" id="4_5vw27"]
-[ext_resource type="Shader" path="res://shaders/scanlines.gdshader" id="5_kek77"]
+[ext_resource type="Script" uid="uid://bb3akbonmepa" path="res://main.gd" id="1_lquwl"]
+[ext_resource type="Texture2D" uid="uid://cjhisdii15q3g" path="res://levels/npc/deepseek_girl/idle.png" id="2_7mycd"]
+[ext_resource type="SpriteFrames" uid="uid://bijecnuwl230c" path="res://player/red_frames.tres" id="3_272bh"]
+[ext_resource type="Script" uid="uid://b2l0wb5ij2t0a" path="res://scripts/ui/cyber_box.gd" id="4_5vw27"]
+[ext_resource type="Shader" uid="uid://4unnbihrnpes" path="res://shaders/scanlines.gdshader" id="5_kek77"]
 
 [sub_resource type="Gradient" id="Gradient_shade"]
 offsets = PackedFloat32Array(0, 0.28, 0.72, 1)
@@ -537,7 +537,7 @@ shader_parameter/vignette_strength = 0.55
 shader_parameter/flicker_strength = 0.02
 shader_parameter/flicker_speed = 18.0
 
-[node name="@Control@207" type="Control" unique_id=335826528]
+[node name="_Control_207" type="Control" unique_id=335826528]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -587,7 +587,7 @@ position = Vector2(270, 610)
 scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_rm4vd")
 animation = &"idle"
-frame_progress = 0.052934743
+frame_progress = 0.48829594
 offset = Vector2(0, -56)
 metadata/_tc_uuid = "7035790538720676868"
 
@@ -643,7 +643,7 @@ scale = Vector2(4, 4)
 sprite_frames = ExtResource("3_272bh")
 animation = &"idle"
 autoplay = "idle"
-frame_progress = 0.6458866
+frame_progress = 0.8414519
 offset = Vector2(0, -23)
 flip_h = true
 metadata/_tc_uuid = "2391150103803664829"

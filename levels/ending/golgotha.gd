@@ -1,6 +1,5 @@
 extends Control
-## 结局场景:监控画面里的孤石方碑(golgotha)。
-## 字幕浮现 → 闪烁三下 → 切入火雨房间,主角与衍月在那里重新登场。
+## 结局场景:已不再播放孤石方碑画面,直接淡入火雨房间。
 ## 场景里的 Subtitle / Flash 若缺失(例如被外部工具覆盖),脚本会在运行时补建。
 
 const NEXT_SCENE := "res://levels/fire_room.tscn"
@@ -21,14 +20,12 @@ func _ready() -> void:
 	_flash.color.a = 0.0
 	_fade.color.a = 1.0
 	await get_tree().process_frame
-	_monolith.pivot_offset = _monolith.size * 0.5
-	_monolith.scale = Vector2(1.06, 1.06)
-	var zoom := create_tween()
-	zoom.tween_property(_monolith, "scale", Vector2.ONE, 9.0) \
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_intro_tween = create_tween()
-	_intro_tween.tween_property(_fade, "color:a", 0.0, 2.0)
-	_run_ending()
+	# 跳过图片与字幕演出,直接从黑场进入火雨房间
+	_leaving = true
+	_monolith.visible = false
+	_subtitle.visible = false
+	await get_tree().create_timer(0.3).timeout
+	get_tree().change_scene_to_file(NEXT_SCENE)
 
 
 func _run_ending() -> void:
