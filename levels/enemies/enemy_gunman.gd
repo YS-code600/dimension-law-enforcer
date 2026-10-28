@@ -5,6 +5,9 @@ const BULLET := preload("res://levels/enemies/enemy_bullet.tscn")
 const STRIPS := preload("res://levels/enemies/strip_anim.gd")
 const ART_DIR := "res://levels/enemies/slime/"
 const GRAVITY := 1500.0
+## 前方障碍探测,避免身体穿进箱子/掩体
+const WALL_PROBE := 44.0
+const WALL_HEIGHTS: Array[float] = [-14.0, -36.0]
 
 @export var max_hp := 30
 @export var fire_interval := 3.0
@@ -84,12 +87,12 @@ func _physics_process(delta: float) -> void:
 		var moved := false
 		if dist > keep_distance:
 			# 太远:靠近
-			if _on_floor:
+			if _on_floor and not _is_wall(_facing):
 				global_position.x += _facing * chase_speed * delta
 				moved = true
 		elif dist < keep_distance * 0.55:
 			# 太近:后撤
-			if _on_floor:
+			if _on_floor and not _is_wall(-_facing):
 				global_position.x -= _facing * chase_speed * 0.8 * delta
 				moved = true
 		if moved and _anim_lock <= 0.0:
@@ -112,6 +115,13 @@ func _patrol(delta: float) -> void:
 		if _anim_lock <= 0.0:
 			_play(&"idle")
 		return
+	# 撞到箱子/掩体:掉头
+	if _on_floor and _is_wall(_patrol_dir):
+		_patrol_dir = -_patrol_dir
+		_patrol_pause = 0.5
+		if _anim_lock <= 0.0:
+			_play(&"idle")
+		return
 	_facing = _patrol_dir
 	_body.flip_h = _facing < 0
 	if _on_floor:
@@ -126,6 +136,17 @@ func _patrol(delta: float) -> void:
 	elif global_position.x >= _spawn_x + patrol_range:
 		_patrol_dir = -1
 		_patrol_pause = 0.6
+
+
+## 朝 dir 方向前方是否有箱子/掩体等实体障碍(碰撞层 1)。
+func _is_wall(dir: int) -> bool:
+	for dy in WALL_HEIGHTS:
+		var from := global_position + Vector2(0.0, dy)
+		var to := from + Vector2(float(dir) * WALL_PROBE, 0.0)
+		var query := PhysicsRayQueryParameters2D.create(from, to, 1)
+		if not get_world_2d().direct_space_state.intersect_ray(query).is_empty():
+			return true
+	return false
 
 
 ## 重力 + 地面吸附。

@@ -5,6 +5,9 @@ extends Node2D
 const STRIPS := preload("res://levels/enemies/strip_anim.gd")
 const ART_DIR := "res://levels/enemies/skeleton/"
 const GRAVITY := 1500.0
+## 前方障碍探测:距离取精灵半宽(约 42)+ 余量,避免身体穿进箱子/掩体
+const WALL_PROBE := 46.0
+const WALL_HEIGHTS: Array[float] = [-16.0, -44.0]
 
 @export var max_hp := 24
 @export var speed := 78.0
@@ -111,11 +114,17 @@ func _physics_process(delta: float) -> void:
 	_body.flip_h = _facing < 0
 	if absf(to_player.x) > 34.0:
 		if _on_floor:
-			global_position.x += _facing * speed * delta
-			_walk_t += delta * 12.0
-			_body.position.y = sin(_walk_t) * 1.0
-			if _anim_lock <= 0.0:
-				_play(&"walk")
+			if _is_wall(_facing):
+				# 前方有箱子/掩体:停在前面,不把身体挤进去
+				_body.position.y = 0.0
+				if _anim_lock <= 0.0:
+					_play(&"idle")
+			else:
+				global_position.x += _facing * speed * delta
+				_walk_t += delta * 12.0
+				_body.position.y = sin(_walk_t) * 1.0
+				if _anim_lock <= 0.0:
+					_play(&"walk")
 		elif _anim_lock <= 0.0:
 			_play(&"idle")
 	else:
@@ -131,6 +140,14 @@ func _physics_process(delta: float) -> void:
 func _patrol(delta: float) -> void:
 	if _patrol_pause > 0.0:
 		_patrol_pause -= delta
+		_body.position.y = 0.0
+		if _anim_lock <= 0.0:
+			_play(&"idle")
+		return
+	# 撞到箱子/掩体:掉头,不穿模
+	if _on_floor and _is_wall(_patrol_dir):
+		_patrol_dir = -_patrol_dir
+		_patrol_pause = 0.5
 		_body.position.y = 0.0
 		if _anim_lock <= 0.0:
 			_play(&"idle")
@@ -151,6 +168,17 @@ func _patrol(delta: float) -> void:
 	elif global_position.x >= _spawn_x + patrol_range:
 		_patrol_dir = -1
 		_patrol_pause = 0.7
+
+
+## 朝 dir 方向前方是否有箱子/掩体等实体障碍(碰撞层 1)。
+func _is_wall(dir: int) -> bool:
+	for dy in WALL_HEIGHTS:
+		var from := global_position + Vector2(0.0, dy)
+		var to := from + Vector2(float(dir) * WALL_PROBE, 0.0)
+		var query := PhysicsRayQueryParameters2D.create(from, to, 1)
+		if not get_world_2d().direct_space_state.intersect_ray(query).is_empty():
+			return true
+	return false
 
 
 ## 重力 + 地面吸附。

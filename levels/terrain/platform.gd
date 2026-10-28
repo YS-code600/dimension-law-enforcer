@@ -1,18 +1,23 @@
 extends StaticBody2D
 ## 地形组件:地板/平台(可单向往上穿过),运行时按导出尺寸生成碰撞体与外观。
-## 表面花纹取自 material 图案集,裁切并镜像成可无缝平铺的贴图。
+## 外观使用 Kenney 像素素材:顶部草皮 + 下方泥土,按 25px 平铺。
 
-const PATTERNS: Array[Texture2D] = [
-	preload("res://levels/terrain/floor_pattern_grid.png"),
-	preload("res://levels/terrain/floor_pattern_lattice.png"),
-]
+const GRASS_PATH := "res://picture/kenney_grass.png"
+const DIRT_PATH := "res://picture/kenney_dirt.png"
+const TILE := 25.0
+const FALLBACK_BODY := Color(0.42, 0.26, 0.18)
+const FALLBACK_TOP := Color(0.24, 0.78, 0.45)
 
 @export var size := Vector2(128, 24)
 @export var one_way := false
+## 以下为旧版外观参数,保留只为兼容已有场景,当前不再参与绘制。
 @export var body_color := Color(0.05, 0.06, 0.12)
 @export var edge_color := Color(1.0, 0.6, 0.22, 0.9)
 @export_enum("Circuit", "Lattice") var pattern_style := 0
 @export var pattern_modulate := Color(0.62, 0.8, 1.0, 0.85)
+
+var _grass: Texture2D
+var _dirt: Texture2D
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 
@@ -25,34 +30,39 @@ func _ready() -> void:
 	_shape.one_way_collision_margin = 3.0
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_grass = _load_texture(GRASS_PATH)
+	_dirt = _load_texture(DIRT_PATH)
 	queue_redraw()
+
+
+## 优先走导入资源;导入缓存缺失时直接读 PNG,保证贴图不会丢。
+func _load_texture(path: String) -> Texture2D:
+	var tex := load(path) as Texture2D
+	if tex != null:
+		return tex
+	var img := Image.new()
+	if img.load(path) == OK:
+		return ImageTexture.create_from_image(img)
+	return null
 
 
 func _draw() -> void:
 	var w := size.x
 	var h := size.y
 	var rect := Rect2(-w / 2.0, -h / 2.0, w, h)
-	var band_h := minf(h, 36.0)
+	var band_h := minf(h, TILE)
 	var band := Rect2(-w / 2.0, -h / 2.0, w, band_h)
 
-	# 主体
-	draw_rect(rect, body_color)
+	if _dirt != null:
+		draw_texture_rect(_dirt, rect, true, Color.WHITE)
+	else:
+		draw_rect(rect, FALLBACK_BODY)
 
-	# 顶部花纹带(图案取自 material,29px 无缝平铺)
-	var pattern: Texture2D = PATTERNS[clampi(pattern_style, 0, PATTERNS.size() - 1)]
-	draw_texture_rect(pattern, band, true, pattern_modulate)
-	# 压暗纹理,保证角色与特效的对比度
-	draw_rect(band, Color(body_color.r, body_color.g, body_color.b, 0.16))
+	if _grass != null:
+		draw_texture_rect(_grass, band, true, Color.WHITE)
+	else:
+		draw_rect(band, FALLBACK_TOP)
 
-	# 顶部发光条
-	draw_rect(Rect2(-w / 2.0, -h / 2.0, w, 4.0), edge_color)
-	draw_rect(Rect2(-w / 2.0, -h / 2.0, w, 1.0), Color(1.0, 0.95, 0.85, 0.85))
-
-	# 厚地板:花纹带下缘的分界线
-	if h > band_h + 2.0:
-		draw_line(Vector2(-w / 2.0, -h / 2.0 + band_h), Vector2(w / 2.0, -h / 2.0 + band_h),
-			Color(0.2, 0.38, 0.7, 0.45), 1.0)
-
-	# 底部阴影(单向平台不画)
+	# 底部压一层暗色,和背景拉开层次
 	if not one_way:
-		draw_rect(Rect2(-w / 2.0, h / 2.0 - 3.0, w, 3.0), Color(0, 0, 0, 0.35))
+		draw_rect(Rect2(-w / 2.0, h / 2.0 - 3.0, w, 3.0), Color(0, 0, 0, 0.28))
