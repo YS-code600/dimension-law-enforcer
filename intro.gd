@@ -111,15 +111,25 @@ func _load_voices() -> void:
 
 func _load_voice(index: int) -> AudioStream:
 	var path := ""
-	if index < voice_paths.size() and not voice_paths[index].is_empty():
+	if index < voice_paths.size():
 		path = voice_paths[index]
+		# 显式留空 = 这一句没有语音,不再回退到 intro_XX.wav
+		if path.is_empty():
+			return null
 	else:
 		path = VOICE_DIR + "intro_%02d.wav" % (index + 1)
 	var stream: AudioStream = null
 	if ResourceLoader.exists(path):
 		stream = load(path) as AudioStream
 	if stream == null:
-		stream = AudioStreamWAV.load_from_file(path)
+		if path.get_extension().to_lower() == "mp3":
+			var bytes := FileAccess.get_file_as_bytes(path)
+			if not bytes.is_empty():
+				var mp3 := AudioStreamMP3.new()
+				mp3.data = bytes
+				stream = mp3
+		else:
+			stream = AudioStreamWAV.load_from_file(path)
 	return stream
 
 

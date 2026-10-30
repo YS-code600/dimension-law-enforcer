@@ -22,6 +22,10 @@ const SPEAKERS := ["程序猿", "程序猿", "程序猿", "豆包"]
 const PORTRAIT_AUTHOR := "res://levels/npc/scientist.png"
 const PORTRAIT_DOUBAO := "res://picture/programmer.png"
 const PORTRAITS := [PORTRAIT_AUTHOR, PORTRAIT_AUTHOR, PORTRAIT_AUTHOR, PORTRAIT_DOUBAO]
+## 每句的配音(空 = 这句没录音);豆包的两句用导入的 mp3,程序猿不配音。
+const VOICE_DOUBAO_01 := "res://audio/voice/doubao_01.mp3"
+const VOICE_DOUBAO_02 := "res://audio/voice/doubao_02.mp3"
+const VOICES := ["", "", "", VOICE_DOUBAO_01]
 const VN_SCENE := preload("res://intro.tscn")
 ## 被打倒后的对白
 const DEATH_LINES := [
@@ -30,6 +34,7 @@ const DEATH_LINES := [
 ]
 const DEATH_SPEAKERS := ["程序猿", "豆包"]
 const DEATH_PORTRAITS := [PORTRAIT_AUTHOR, PORTRAIT_DOUBAO]
+const DEATH_VOICES := ["", VOICE_DOUBAO_02]
 
 @onready var _player: Node2D = $Player
 @onready var _npc: Node2D = $Scientist
@@ -72,12 +77,14 @@ func _run_intro() -> void:
 
 ## 用和黑房间同一套 galgame 界面播白房间的对白(浮层,不切场景)。
 func _play_vn(lines: Array = LINES, speakers: Array = SPEAKERS,
-		portraits: Array = PORTRAITS, loading := "> 战斗开始") -> void:
+		portraits: Array = PORTRAITS, loading := "> 战斗开始",
+		voices: Array = VOICES) -> void:
 	var vn := VN_SCENE.instantiate()
 	vn.set("custom_lines", PackedStringArray(lines))
 	vn.set("speaker_names", PackedStringArray(speakers))
 	vn.set("portrait_paths", PackedStringArray(portraits))
-	vn.set("voice_enabled", false)
+	vn.set("voice_enabled", true)
+	vn.set("voice_paths", PackedStringArray(voices))
 	vn.set("stay_in_scene", true)
 	vn.set("portrait_source_path", String(portraits[0]) if portraits.size() > 0 else PORTRAIT_AUTHOR)
 	vn.set("header_tag", "// AUTHOR")
@@ -99,7 +106,7 @@ func _on_npc_defeated() -> void:
 		return
 	if _player != null:
 		_player.process_mode = Node.PROCESS_MODE_DISABLED
-	await _play_vn(DEATH_LINES, DEATH_SPEAKERS, DEATH_PORTRAITS, "> 战斗结束")
+	await _play_vn(DEATH_LINES, DEATH_SPEAKERS, DEATH_PORTRAITS, "> 战斗结束", DEATH_VOICES)
 	if _player != null:
 		_player.process_mode = Node.PROCESS_MODE_INHERIT
 	_npc.call("fade_out", 2.0)
