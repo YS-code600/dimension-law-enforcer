@@ -9,6 +9,7 @@ const WIDTH := 360.0
 const HEIGHT := 130.0
 
 var _dir := 1.0
+var _damage := DAMAGE
 var _t := 0.0
 var _hit := false
 var _area: Area2D
@@ -46,8 +47,10 @@ func _ready() -> void:
 	_area.body_entered.connect(_on_body_entered)
 
 
-func setup(direction: float) -> void:
+## damage_bonus:Boss 随阶段成长的额外伤害。
+func setup(direction: float, damage_bonus := 0) -> void:
 	_dir = 1.0 if direction >= 0.0 else -1.0
+	_damage = DAMAGE + maxi(0, damage_bonus)
 
 
 func _physics_process(delta: float) -> void:
@@ -62,7 +65,7 @@ func _on_body_entered(body: Node) -> void:
 		return
 	_hit = true
 	if body.has_method("take_damage"):
-		body.call("take_damage", DAMAGE, global_position + Vector2(-_dir * 80.0, 0.0))
+		body.call("take_damage", _damage, global_position + Vector2(-_dir * 80.0, 0.0))
 
 
 func _load_texture(path: String) -> Texture2D:

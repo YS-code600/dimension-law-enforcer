@@ -1,9 +1,10 @@
 [gd_scene load_steps=11 format=3 uid="uid://hud_scene_001"]
 
 [ext_resource type="Script" path="res://scripts/ui/cyber_box.gd" id="8_cbx"]
+[ext_resource type="Script" path="res://levels/ui/warning_triangle.gd" id="9_warn"]
 
 [sub_resource type="GDScript" id="GDScript_1_hud"]
-script/source = "extends CanvasLayer\n## 游戏内 HUD:血量、重来/退出按钮与死亡界面。\n\nconst MAIN_MENU := \"res://main.tscn\"\nconst BAR_WIDTH := 238.0\nconst BAR_HEIGHT := 10.0\nconst SKILL_BAR_WIDTH := 238.0\nconst SKILL_BAR_HEIGHT := 10.0\nconst ENDING_SCENE := \"res://levels/ending/golgotha.tscn\"\n\n@onready var restart_button: Button = %RestartButton\n@onready var exit_button: Button = %ExitButton\n@onready var health_panel: Panel = $HealthPanel\n@onready var health_fill: ColorRect = $HealthPanel/BarFrame/BarFill\n@onready var health_value: Label = $HealthPanel/HPValue\n@onready var skill_panel: Panel = $SkillPanel\n@onready var skill_fill: ColorRect = $SkillPanel/BarFrame/BarFill\n@onready var skill_status: Label = $SkillPanel/SkillStatus\n@onready var top_buttons: VBoxContainer = $Buttons\n@onready var combat_hint: Label = $CombatHint\n@onready var death_overlay: Control = $DeathOverlay\n@onready var death_restart: Button = %DeathRestart\n@onready var death_exit: Button = %DeathExit\n@onready var win_banner: Control = $WinBanner\n@onready var win_label: Label = $WinBanner/WinLabel\n@onready var win_sub: Label = $WinBanner/WinSub\n@onready var style_panel: Panel = $StylePanel\n@onready var style_value: Label = $StylePanel/StyleValue\n\n\nfunc _ready() -> void:\n\tprocess_mode = Node.PROCESS_MODE_ALWAYS\n\trestart_button.pressed.connect(_restart)\n\texit_button.pressed.connect(_exit)\n\tdeath_restart.pressed.connect(_restart)\n\tdeath_exit.pressed.connect(_exit)\n\tdeath_overlay.visible = false\n\t_bind_player.call_deferred()\n\n\n## 关卡内不显示文字:隐藏所有 Label,清空按钮文字。\nfunc _hide_texts(node: Node) -> void:\n\tfor child in node.get_children():\n\t\tif child is Label:\n\t\t\t(child as Label).visible = false\n\t\telif child is RichTextLabel:\n\t\t\t(child as RichTextLabel).visible = false\n\t\telif child is Button:\n\t\t\t(child as Button).text = \"\"\n\t\t_hide_texts(child)\n\n\nfunc _bind_player() -> void:\n\tvar player := get_parent().get_node_or_null(\"Player\") as Node\n\tif player == null:\n\t\tplayer = get_tree().get_first_node_in_group(\"player\")\n\tif player == null:\n\t\treturn\n\tif player.has_signal(\"health_changed\"):\n\t\tplayer.connect(\"health_changed\", _on_health_changed)\n\t\t_on_health_changed(int(player.get(\"health\")), int(player.get(\"max_health\")))\n\tif player.has_signal(\"died\"):\n\t\tplayer.connect(\"died\", _on_player_died)\n\tif player.has_signal(\"skill_changed\"):\n\t\tplayer.connect(\"skill_changed\", _on_skill_changed)\n\t\t_on_skill_changed(false, 0.0, 9.0, 0.0, 30.0)\n\tif player.has_signal(\"won\"):\n\t\tplayer.connect(\"won\", _on_won)\n\tif player.has_signal(\"style_changed\"):\n\t\tplayer.connect(\"style_changed\", _on_style_changed)\n\tif player.has_method(\"current_style\"):\n\t\t_on_style_changed(int(player.call(\"current_style\")))\n\n\nfunc _on_style_changed(style: int) -> void:\n\tvar ranged := style == 1\n\tstyle_value.text = \"远程\" if ranged else \"拳击\"\n\tstyle_value.add_theme_color_override(\n\t\t\"font_color\",\n\t\tColor(1.0, 0.78, 0.35) if ranged else Color(0.55, 0.95, 1.0)\n\t)\n\n\nfunc _on_health_changed(current: int, maximum: int) -> void:\n\tvar ratio := 0.0 if maximum <= 0 else clampf(float(current) / float(maximum), 0.0, 1.0)\n\thealth_fill.size = Vector2(BAR_WIDTH * ratio, BAR_HEIGHT)\n\thealth_value.text = \"%d / %d\" % [current, maximum]\n\tvar low := clampf((0.5 - ratio) * 2.0, 0.0, 1.0)\n\thealth_fill.color = Color(0.2, 0.95, 1.0).lerp(Color(1.0, 0.28, 0.32), low)\n\n\nfunc _on_won() -> void:\n\tif win_banner.visible:\n\t\treturn\n\twin_banner.visible = true\n\tcombat_hint.visible = false\n\thealth_panel.visible = false\n\tskill_panel.visible = false\n\tstyle_panel.visible = false\n\ttop_buttons.visible = false\n\t_run_win_cutscene()\n\n\nfunc _run_win_cutscene() -> void:\n\t# 1) WIN 图标停留 2 秒\n\tawait get_tree().create_timer(2.0).timeout\n\t# 2) 闪烁\n\tfor i in 3:\n\t\twin_banner.modulate.a = 0.15\n\t\tawait get_tree().create_timer(0.1).timeout\n\t\twin_banner.modulate.a = 1.0\n\t\tawait get_tree().create_timer(0.1).timeout\n\t# 3) 变成红字 WARNING\n\t_show_warning()\n\tawait get_tree().create_timer(0.9).timeout\n\t# 4) 直升机爆炸(主世界与平行世界各有一个撤离点,只炸当前可见的那个)\n\tvar extraction := _find_active_extraction()\n\tif extraction != null and extraction.has_method(\"explode\"):\n\t\textraction.explode()\n\tvar player := get_tree().get_first_node_in_group(\"player\")\n\tif player != null and player.has_method(\"add_camera_shake\"):\n\t\tplayer.call(\"add_camera_shake\", 1.6)\n\t_flash_white()\n\tawait get_tree().create_timer(1.9).timeout\n\t# 5) 进入结局场景\n\tget_tree().change_scene_to_file(ENDING_SCENE)\n\n\nfunc _find_active_extraction() -> Node:\n\tvar fallback: Node = null\n\tfor node in get_tree().get_nodes_in_group(\"extraction\"):\n\t\tif fallback == null:\n\t\t\tfallback = node\n\t\tif node is CanvasItem and (node as CanvasItem).is_visible_in_tree():\n\t\t\treturn node\n\treturn fallback\n\n\nfunc _show_warning() -> void:\n\twin_label.text = \"WARNING\"\n\twin_label.add_theme_color_override(\"font_color\", Color(1.0, 0.16, 0.2))\n\twin_label.add_theme_color_override(\"font_shadow_color\", Color(1.0, 0.05, 0.05, 0.55))\n\twin_label.add_theme_font_size_override(\"font_size\", 92)\n\twin_sub.text = \"信号中断\"\n\twin_sub.add_theme_color_override(\"font_color\", Color(1.0, 0.42, 0.42))\n\tvar pulse := create_tween().set_loops()\n\tpulse.tween_property(win_label, \"modulate:a\", 0.3, 0.16)\n\tpulse.tween_property(win_label, \"modulate:a\", 1.0, 0.16)\n\n\nfunc _flash_white() -> void:\n\tvar flash := ColorRect.new()\n\tflash.color = Color(1.0, 0.96, 0.88, 0.0)\n\tflash.mouse_filter = Control.MOUSE_FILTER_IGNORE\n\tadd_child(flash)\n\tflash.set_anchors_preset(Control.PRESET_FULL_RECT)\n\tvar tw := create_tween()\n\ttw.tween_property(flash, \"color:a\", 0.9, 0.05)\n\ttw.tween_property(flash, \"color:a\", 0.0, 0.5)\n\ttw.tween_callback(flash.queue_free)\n\n\nfunc _on_player_died() -> void:\n\tif death_overlay.visible:\n\t\treturn\n\thealth_panel.visible = false\n\tskill_panel.visible = false\n\tstyle_panel.visible = false\n\ttop_buttons.visible = false\n\tcombat_hint.visible = false\n\tdeath_overlay.visible = true\n\tget_tree().paused = true\n\tdeath_restart.grab_focus()\n\n\nfunc _on_skill_changed(active: bool, active_left: float, active_total: float, cooldown_left: float, cooldown_total: float) -> void:\n\tvar ratio := 0.0\n\tif active:\n\t\tratio = clampf(active_left / active_total, 0.0, 1.0) if active_total > 0.0 else 0.0\n\t\tskill_status.text = \"无敌 %.1fs\" % active_left\n\t\tskill_fill.color = Color(0.72, 0.55, 1.0)\n\telif cooldown_left > 0.0:\n\t\tratio = 1.0 - clampf(cooldown_left / cooldown_total, 0.0, 1.0)\n\t\tskill_status.text = \"冷却 %.1fs\" % cooldown_left\n\t\tskill_fill.color = Color(0.2, 0.85, 1.0)\n\telse:\n\t\tratio = 1.0\n\t\tskill_status.text = \"就绪\"\n\t\tskill_fill.color = Color(0.55, 1.0, 1.0)\n\tskill_fill.size = Vector2(SKILL_BAR_WIDTH * ratio, SKILL_BAR_HEIGHT)\n\n\nfunc _restart() -> void:\n\tget_tree().paused = false\n\tget_tree().reload_current_scene()\n\n\nfunc _exit() -> void:\n\tget_tree().paused = false\n\tvar packed := load(MAIN_MENU) as PackedScene\n\tif packed != null:\n\t\tget_tree().change_scene_to_packed(packed)\n\n\nfunc _unhandled_input(event: InputEvent) -> void:\n\tif not death_overlay.visible:\n\t\treturn\n\tif event.is_action_pressed(\"ui_cancel\"):\n\t\tget_viewport().set_input_as_handled()\n\t\t_exit()\n"
+script/source = "extends CanvasLayer\n## 游戏内 HUD:血量、重来/退出按钮与死亡界面。\n\nconst MAIN_MENU := \"res://main.tscn\"\nconst BAR_WIDTH := 238.0\nconst BAR_HEIGHT := 10.0\nconst SKILL_BAR_WIDTH := 238.0\nconst SKILL_BAR_HEIGHT := 10.0\n## 右上角 token 计数面板\nconst TOKEN_HUD_SCENE := preload(\"res://levels/ui/token_hud.tscn\")\nconst ENDING_SCENE := \"res://levels/ending/golgotha.tscn\"\n\n@onready var restart_button: Button = %RestartButton\n@onready var exit_button: Button = %ExitButton\n@onready var health_panel: Panel = $HealthPanel\n@onready var health_fill: ColorRect = $HealthPanel/BarFrame/BarFill\n@onready var health_value: Label = $HealthPanel/HPValue\n@onready var skill_panel: Panel = $SkillPanel\n@onready var skill_fill: ColorRect = $SkillPanel/BarFrame/BarFill\n@onready var skill_status: Label = $SkillPanel/SkillStatus\n@onready var top_buttons: VBoxContainer = $Buttons\n@onready var combat_hint: Label = $CombatHint\n@onready var death_overlay: Control = $DeathOverlay\n@onready var death_restart: Button = %DeathRestart\n@onready var death_exit: Button = %DeathExit\n@onready var win_banner: Control = $WinBanner\n@onready var win_label: Label = $WinBanner/WinLabel\n@onready var win_sub: Label = $WinBanner/WinSub\n@onready var style_panel: Panel = $StylePanel\n@onready var style_value: Label = $StylePanel/StyleValue\n\n\nfunc _ready() -> void:\n\tprocess_mode = Node.PROCESS_MODE_ALWAYS\n\trestart_button.pressed.connect(_restart)\n\texit_button.pressed.connect(_exit)\n\tdeath_restart.pressed.connect(_restart)\n\tdeath_exit.pressed.connect(_exit)\n\tdeath_overlay.visible = false\n\t_build_token_counter()\n\t_bind_player.call_deferred()\n\n\n## 右上角 token 计数:贴在「重来 / 退出」按钮下方。\nfunc _build_token_counter() -> void:\n\tvar panel := TOKEN_HUD_SCENE.instantiate()\n\ttop_buttons.add_child(panel)\n\tpanel.call(\"setup\", health_panel, health_value)\n\n\n## 关卡内不显示文字:隐藏所有 Label,清空按钮文字。\nfunc _hide_texts(node: Node) -> void:\n\tfor child in node.get_children():\n\t\tif child is Label:\n\t\t\t(child as Label).visible = false\n\t\telif child is RichTextLabel:\n\t\t\t(child as RichTextLabel).visible = false\n\t\telif child is Button:\n\t\t\t(child as Button).text = \"\"\n\t\t_hide_texts(child)\n\n\nfunc _bind_player() -> void:\n\tvar player := get_parent().get_node_or_null(\"Player\") as Node\n\tif player == null:\n\t\tplayer = get_tree().get_first_node_in_group(\"player\")\n\tif player == null:\n\t\treturn\n\tif player.has_signal(\"health_changed\"):\n\t\tplayer.connect(\"health_changed\", _on_health_changed)\n\t\t_on_health_changed(int(player.get(\"health\")), int(player.get(\"max_health\")))\n\tif player.has_signal(\"died\"):\n\t\tplayer.connect(\"died\", _on_player_died)\n\tif player.has_signal(\"skill_changed\"):\n\t\tplayer.connect(\"skill_changed\", _on_skill_changed)\n\t\t_on_skill_changed(false, 0.0, 9.0, 0.0, 30.0)\n\tif player.has_signal(\"won\"):\n\t\tplayer.connect(\"won\", _on_won)\n\tif player.has_signal(\"style_changed\"):\n\t\tplayer.connect(\"style_changed\", _on_style_changed)\n\tif player.has_method(\"current_style\"):\n\t\t_on_style_changed(int(player.call(\"current_style\")))\n\n\nfunc _on_style_changed(style: int) -> void:\n\tvar ranged := style == 1\n\tstyle_value.text = \"远程\" if ranged else \"拳击\"\n\tstyle_value.add_theme_color_override(\n\t\t\"font_color\",\n\t\tColor(1.0, 0.78, 0.35) if ranged else Color(0.55, 0.95, 1.0)\n\t)\n\n\nfunc _on_health_changed(current: int, maximum: int) -> void:\n\tvar ratio := 0.0 if maximum <= 0 else clampf(float(current) / float(maximum), 0.0, 1.0)\n\thealth_fill.size = Vector2(BAR_WIDTH * ratio, BAR_HEIGHT)\n\thealth_value.text = \"%d / %d\" % [current, maximum]\n\tvar low := clampf((0.5 - ratio) * 2.0, 0.0, 1.0)\n\thealth_fill.color = Color(0.2, 0.95, 1.0).lerp(Color(1.0, 0.28, 0.32), low)\n\n\nfunc _on_won() -> void:\n\tif win_banner.visible:\n\t\treturn\n\twin_banner.visible = true\n\tcombat_hint.visible = false\n\thealth_panel.visible = false\n\tskill_panel.visible = false\n\tstyle_panel.visible = false\n\ttop_buttons.visible = false\n\t_run_win_cutscene()\n\n\nfunc _run_win_cutscene() -> void:\n\t# 1) 红色警告三角 + 巨大 BUG 弹出(胜利界面已删掉)\n\tawait get_tree().process_frame\n\t_pop_in_warning()\n\tawait get_tree().create_timer(1.1).timeout\n\t# 2) 红色闪两下\n\tfor i in 2:\n\t\twin_banner.modulate.a = 0.35\n\t\tawait get_tree().create_timer(0.09).timeout\n\t\twin_banner.modulate.a = 1.0\n\t\tawait get_tree().create_timer(0.09).timeout\n\t# 4) 直升机爆炸(主世界与平行世界各有一个撤离点,只炸当前可见的那个)\n\tvar extraction := _find_active_extraction()\n\tif extraction != null and extraction.has_method(\"explode\"):\n\t\textraction.explode()\n\tvar player := get_tree().get_first_node_in_group(\"player\")\n\tif player != null and player.has_method(\"add_camera_shake\"):\n\t\tplayer.call(\"add_camera_shake\", 1.6)\n\t_flash_white()\n\tawait get_tree().create_timer(1.9).timeout\n\t# 5) 进入结局场景\n\tget_tree().change_scene_to_file(ENDING_SCENE)\n\n\nfunc _find_active_extraction() -> Node:\n\tvar fallback: Node = null\n\tfor node in get_tree().get_nodes_in_group(\"extraction\"):\n\t\tif fallback == null:\n\t\t\tfallback = node\n\t\tif node is CanvasItem and (node as CanvasItem).is_visible_in_tree():\n\t\t\treturn node\n\treturn fallback\n\n\nfunc _pop_in_warning() -> void:\n\twin_banner.modulate.a = 0.0\n\twin_banner.scale = Vector2(0.94, 0.94)\n\twin_banner.pivot_offset = win_banner.size * 0.5\n\tvar tw := create_tween()\n\ttw.set_parallel(true)\n\ttw.tween_property(win_banner, \"modulate:a\", 1.0, 0.12)\n\ttw.tween_property(win_banner, \"scale\", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)\n\t# 三角一直报警闪烁\n\tvar pulse := create_tween().set_loops()\n\tpulse.tween_property($WinBanner/Triangle, \"modulate:a\", 0.45, 0.16)\n\tpulse.tween_property($WinBanner/Triangle, \"modulate:a\", 1.0, 0.16)\n\n\nfunc _flash_white() -> void:\n\tvar flash := ColorRect.new()\n\tflash.color = Color(1.0, 0.96, 0.88, 0.0)\n\tflash.mouse_filter = Control.MOUSE_FILTER_IGNORE\n\tadd_child(flash)\n\tflash.set_anchors_preset(Control.PRESET_FULL_RECT)\n\tvar tw := create_tween()\n\ttw.tween_property(flash, \"color:a\", 0.9, 0.05)\n\ttw.tween_property(flash, \"color:a\", 0.0, 0.5)\n\ttw.tween_callback(flash.queue_free)\n\n\nfunc _on_player_died() -> void:\n\tif death_overlay.visible:\n\t\treturn\n\thealth_panel.visible = false\n\tskill_panel.visible = false\n\tstyle_panel.visible = false\n\ttop_buttons.visible = false\n\tcombat_hint.visible = false\n\tdeath_overlay.visible = true\n\tget_tree().paused = true\n\tdeath_restart.grab_focus()\n\n\nfunc _on_skill_changed(active: bool, active_left: float, active_total: float, cooldown_left: float, cooldown_total: float) -> void:\n\tvar ratio := 0.0\n\tif active:\n\t\tratio = clampf(active_left / active_total, 0.0, 1.0) if active_total > 0.0 else 0.0\n\t\tskill_status.text = \"无敌 %.1fs\" % active_left\n\t\tskill_fill.color = Color(0.72, 0.55, 1.0)\n\telif cooldown_left > 0.0:\n\t\tratio = 1.0 - clampf(cooldown_left / cooldown_total, 0.0, 1.0)\n\t\tskill_status.text = \"冷却 %.1fs\" % cooldown_left\n\t\tskill_fill.color = Color(0.2, 0.85, 1.0)\n\telse:\n\t\tratio = 1.0\n\t\tskill_status.text = \"就绪\"\n\t\tskill_fill.color = Color(0.55, 1.0, 1.0)\n\tskill_fill.size = Vector2(SKILL_BAR_WIDTH * ratio, SKILL_BAR_HEIGHT)\n\n\nfunc _restart() -> void:\n\tget_tree().paused = false\n\tget_tree().reload_current_scene()\n\n\nfunc _exit() -> void:\n\tget_tree().paused = false\n\tvar packed := load(MAIN_MENU) as PackedScene\n\tif packed != null:\n\t\tget_tree().change_scene_to_packed(packed)\n\n\nfunc _unhandled_input(event: InputEvent) -> void:\n\tif not death_overlay.visible:\n\t\treturn\n\tif event.is_action_pressed(\"ui_cancel\"):\n\t\tget_viewport().set_input_as_handled()\n\t\t_exit()\n"
 
 [sub_resource type="SystemFont" id="SystemFont_hud"]
 font_names = PackedStringArray("Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "WenQuanYi Micro Hei", "SimHei")
@@ -273,59 +274,79 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = SubResource("SystemFont_hud")
 theme_override_font_sizes/font_size = 14
-text = "E 掷雷(冷却2s)   J 轻击   K 重击   L 突进斩   Shift 闪避\n空中 J 空中斩   F 互动   1 拳击 / 2 远程   [+] 直达火雨房间\nSpace 时域强化(9s无敌 / 30s冷却)   S 弹反(3s冷却)"
+text = "E 掷雷(冷却2s)   J 轻击   K 重击   L 突进斩   Shift 闪避\n空中 J 空中斩   F 互动   1 拳击 / 2 远程\nSpace 时域强化(9s无敌 / 30s冷却)   S 弹反(3s冷却)"
 
 [node name="WinBanner" type="Control" parent="."]
 visible = false
 layout_mode = 3
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_top = 52.0
-offset_bottom = 230.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Backdrop" type="ColorRect" parent="WinBanner"]
-layout_mode = 1
-offset_left = 360.0
-offset_top = 0.0
-offset_right = 920.0
-offset_bottom = 178.0
-color = Color(0.01, 0.02, 0.04, 0.95)
-mouse_filter = 2
-
-[node name="WinLabel" type="Label" parent="WinBanner"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_colors/font_outline_color = Color(0.12, 0.05, 0.02, 1)
-theme_override_colors/font_shadow_color = Color(1, 0.55, 0.1, 0.45)
-theme_override_constants/outline_size = 18
+color = Color(0.07, 0, 0.02, 0.66)
+mouse_filter = 2
+
+[node name="Triangle" type="Control" parent="WinBanner"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 84.0
+offset_right = 150.0
+offset_bottom = 324.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("9_warn")
+
+[node name="WinLabel" type="Label" parent="WinBanner"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -460.0
+offset_top = 318.0
+offset_right = 460.0
+offset_bottom = 512.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.16, 0.22, 1)
+theme_override_colors/font_outline_color = Color(0.16, 0, 0.02, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.1, 0.1, 0.45)
+theme_override_constants/outline_size = 20
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 8
 theme_override_fonts/font = SubResource("SystemFont_hud")
-theme_override_font_sizes/font_size = 110
-text = "WIN"
+theme_override_font_sizes/font_size = 168
+text = "BUG"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="WinSub" type="Label" parent="WinBanner"]
 layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 136.0
-offset_bottom = 174.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 516.0
+offset_right = 320.0
+offset_bottom = 552.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.7, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 0.42, 0.45, 0.95)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = SubResource("SystemFont_hud")
 theme_override_font_sizes/font_size = 24
-text = "任务完成"
+text = "// SYSTEM FAILURE"
 horizontal_alignment = 1
 
 [node name="DeathOverlay" type="Control" parent="."]

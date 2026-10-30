@@ -52,7 +52,7 @@ func _on_area_entered(area: Area2D) -> void:
 		return
 	if target.has_method("take_hit"):
 		_done = true
-		target.call("take_hit", damage, _dir, knockback, launch)
+		target.call("take_hit", PlayerStats.hit(damage), _dir, knockback, launch)
 		_burst()
 		queue_free()
 

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://levels/combat/token_dot.gd" id="1_dot"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dot"]
+radius = 5.0
+
+[node name="TokenDot" type="RigidBody2D"]
+collision_layer = 0
+collision_mask = 1
+lock_rotation = true
+continuous_cd = 1
+linear_damp = 1.5
+angular_damp = 8.0
+script = ExtResource("1_dot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_dot")

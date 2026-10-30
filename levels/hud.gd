@@ -1,5 +1,6 @@
 extends CanvasLayer
 ## 游戏内 HUD:血量、重来/退出按钮与死亡界面。
+## 注意:hud.tscn 用的是同内容的内嵌脚本副本,两边要一起改。
 
 const MAIN_MENU := "res://main.tscn"
 const BAR_WIDTH := 238.0
@@ -7,6 +8,8 @@ const BAR_HEIGHT := 10.0
 const SKILL_BAR_WIDTH := 238.0
 const SKILL_BAR_HEIGHT := 10.0
 const ENDING_SCENE := "res://levels/ending/golgotha.tscn"
+## 右上角 token 计数面板
+const TOKEN_HUD_SCENE := preload("res://levels/ui/token_hud.tscn")
 
 @onready var restart_button: Button = %RestartButton
 @onready var exit_button: Button = %ExitButton
@@ -33,7 +36,15 @@ func _ready() -> void:
 	death_restart.pressed.connect(_restart)
 	death_exit.pressed.connect(_exit)
 	death_overlay.visible = false
+	_build_token_counter()
 	_bind_player.call_deferred()
+
+
+## 右上角 token 计数:贴在「重来 / 退出」按钮下方。
+func _build_token_counter() -> void:
+	var panel := TOKEN_HUD_SCENE.instantiate()
+	top_buttons.add_child(panel)
+	panel.call("setup", health_panel, health_value)
 
 
 ## 关卡内不显示文字:隐藏所有 Label,清空按钮文字。
@@ -86,18 +97,17 @@ func _on_won() -> void:
 
 
 func _run_win_cutscene() -> void:
-	# 1) WIN 图标停留 2 秒
-	await get_tree().create_timer(2.0).timeout
-	# 2) 闪烁
-	for i in 3:
-		win_banner.modulate.a = 0.15
-		await get_tree().create_timer(0.1).timeout
+	# 1) 红色警告三角 + 巨大 BUG 弹出(胜利界面已删掉)
+	await get_tree().process_frame
+	_pop_in_warning()
+	await get_tree().create_timer(1.1).timeout
+	# 2) 红色闪两下
+	for i in 2:
+		win_banner.modulate.a = 0.35
+		await get_tree().create_timer(0.09).timeout
 		win_banner.modulate.a = 1.0
-		await get_tree().create_timer(0.1).timeout
-	# 3) 变成红字 WARNING
-	_show_warning()
-	await get_tree().create_timer(0.9).timeout
-	# 4) 直升机爆炸(主世界与平行世界各有一个撤离点,只炸当前可见的那个)
+		await get_tree().create_timer(0.09).timeout
+	# 3) 直升机爆炸(主世界与平行世界各有一个撤离点,只炸当前可见的那个)
 	var extraction := _find_active_extraction()
 	if extraction != null and extraction.has_method("explode"):
 		extraction.explode()
@@ -106,7 +116,7 @@ func _run_win_cutscene() -> void:
 		player.call("add_camera_shake", 1.6)
 	_flash_white()
 	await get_tree().create_timer(1.9).timeout
-	# 5) 进入结局场景
+	# 4) 进入结局场景
 	get_tree().change_scene_to_file(ENDING_SCENE)
 
 
@@ -120,16 +130,18 @@ func _find_active_extraction() -> Node:
 	return fallback
 
 
-func _show_warning() -> void:
-	win_label.text = "WARNING"
-	win_label.add_theme_color_override("font_color", Color(1.0, 0.16, 0.2))
-	win_label.add_theme_color_override("font_shadow_color", Color(1.0, 0.05, 0.05, 0.55))
-	win_label.add_theme_font_size_override("font_size", 92)
-	win_sub.text = "信号中断"
-	win_sub.add_theme_color_override("font_color", Color(1.0, 0.42, 0.42))
+## 警告弹出:整块快速淡入 + 轻微放大,三角持续报警闪烁。
+func _pop_in_warning() -> void:
+	win_banner.modulate.a = 0.0
+	win_banner.scale = Vector2(0.94, 0.94)
+	win_banner.pivot_offset = win_banner.size * 0.5
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(win_banner, "modulate:a", 1.0, 0.12)
+	tw.tween_property(win_banner, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	var pulse := create_tween().set_loops()
-	pulse.tween_property(win_label, "modulate:a", 0.3, 0.16)
-	pulse.tween_property(win_label, "modulate:a", 1.0, 0.16)
+	pulse.tween_property($WinBanner/Triangle, "modulate:a", 0.45, 0.16)
+	pulse.tween_property($WinBanner/Triangle, "modulate:a", 1.0, 0.16)
 
 
 func _flash_white() -> void:

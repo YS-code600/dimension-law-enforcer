@@ -1,0 +1,147 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/ui/npc_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://levels/ui/upgrade_screen.tscn" id="2_screen"]
+[ext_resource type="PackedScene" path="res://levels/ui/skill_screen.tscn" id="3_skill"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_options"]
+bg_color = Color(0.02, 0.04, 0.08, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.9, 1, 0.75)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_opt"]
+content_margin_left = 6.0
+content_margin_top = 3.0
+content_margin_right = 6.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_opt_hover"]
+bg_color = Color(0.3, 0.72, 1, 0.2)
+border_width_left = 2
+border_color = Color(0.45, 0.95, 1, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 6.0
+content_margin_top = 3.0
+content_margin_right = 6.0
+content_margin_bottom = 3.0
+
+[node name="NpcMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+visible = false
+script = ExtResource("1_menu")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.04, 0.09, 0.42)
+
+[node name="Options" type="PanelContainer" parent="Root"]
+visible = false
+offset_right = 172.0
+offset_bottom = 76.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_options")
+
+[node name="Lines" type="VBoxContainer" parent="Root/Options"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="Option1" type="Button" parent="Root/Options/Lines"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.78, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxEmpty_opt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_opt")
+text = "1：我要变强"
+alignment = 0
+
+[node name="Option2" type="Button" parent="Root/Options/Lines"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.95, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxEmpty_opt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_opt")
+text = "2：技能改换"
+alignment = 0
+
+[node name="Option3" type="Button" parent="Root/Options/Lines"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxEmpty_opt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_opt")
+text = "3：与鲸鱼娘互动"
+alignment = 0
+
+[node name="Option4" type="Button" parent="Root/Options/Lines"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.82, 0.86, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxEmpty_opt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_opt_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_opt")
+text = "4：离开"
+alignment = 0
+
+[node name="UpgradeScreen" parent="Root" instance=ExtResource("2_screen")]
+layout_mode = 3
+
+[node name="SkillScreen" parent="Root" instance=ExtResource("3_skill")]
+layout_mode = 3

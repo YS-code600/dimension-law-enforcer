@@ -109,7 +109,7 @@ func _hit_target(target: Node) -> void:
 		return
 	if not target.has_method("take_hit"):
 		return
-	target.call("take_hit", damage, int(signf(_dir.x)), 250.0, -70.0)
+	target.call("take_hit", PlayerStats.hit(damage), int(signf(_dir.x)), 250.0, -70.0)
 
 
 func pop() -> void:

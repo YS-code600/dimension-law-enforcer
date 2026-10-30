@@ -49,7 +49,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("Atlas_attack1_fx_1")
 }],
-"loop": false,
+"loop": 0,
 "name": &"attack1_fx",
 "speed": 14.0
 }, {
@@ -63,7 +63,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("Atlas_attack2_fx_2")
 }],
-"loop": false,
+"loop": 0,
 "name": &"attack2_fx",
 "speed": 12.0
 }, {
@@ -80,7 +80,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("Atlas_stop_fx_3")
 }],
-"loop": false,
+"loop": 0,
 "name": &"stop_fx",
 "speed": 14.0
 }]

@@ -7,6 +7,7 @@ signal revived
 
 const BULLET := preload("res://levels/enemies/enemy_bullet.tscn")
 const BLUE_ORB := preload("res://levels/npc/blue_orb.tscn")
+const NPC_MENU := preload("res://levels/ui/npc_menu.tscn")
 const WIZARD_DIR := "res://levels/npc/wizard/"
 const FRAME_SIZE := Vector2(64, 64)
 ## 地面移动参数:她不会飞,只能走/跑和跳。
@@ -86,6 +87,7 @@ var _flip_cd := 0.0
 @onready var _glow: Sprite2D = $Glow
 @onready var _prompt: Label = $Prompt
 var _hurtbox: Area2D
+var _menu: CanvasLayer
 
 
 func _ready() -> void:
@@ -95,6 +97,7 @@ func _ready() -> void:
 	if start_following:
 		_following = true
 	_ensure_interact_action()
+	_build_menu()
 	_hurtbox = get_node_or_null("Hurtbox")
 	if _hurtbox == null:
 		_hurtbox = _make_hurtbox()
@@ -199,13 +202,31 @@ func _update_follow_prompt() -> void:
 		_prompt.text = "F  互动"
 
 
-## 按 F:随机挑一种素材反应播一次。
+## 按 F:在她右边弹出交互菜单(我要变强 / 离开)。
 func _try_interact() -> void:
 	if _hostile or _dead or _reaction_time > 0.0:
 		return
 	if not _ensure_player():
 		return
 	if global_position.distance_to(_player.global_position) > INTERACT_RANGE:
+		return
+	# 面向玩家
+	_face(_player.global_position.x - global_position.x)
+	_prompt.visible = false
+	if _menu != null:
+		_menu.call("open", self)
+		return
+	_play_reaction()
+
+
+## 交互菜单「与鲸鱼娘互动」:随机播一段动作。
+func play_random_reaction() -> void:
+	_play_reaction()
+
+
+## 随机播一种素材反应(没有菜单时的兜底,以及选「离开」时的道别动作)。
+func _play_reaction() -> void:
+	if _hostile or _dead or _reaction_time > 0.0:
 		return
 	if _sprite.sprite_frames == null:
 		return
@@ -219,8 +240,21 @@ func _try_interact() -> void:
 	_reaction_time = _anim_length(_reaction_anim)
 	_play(_reaction_anim, true)
 	_prompt.visible = false
-	# 面向玩家
-	_face(_player.global_position.x - global_position.x)
+
+
+## 交互菜单(同行者形态才有「变强」入口)。
+func _build_menu() -> void:
+	if art != "girl":
+		return
+	_menu = NPC_MENU.instantiate()
+	_menu.connect("closed", _on_menu_closed)
+	add_child(_menu)
+
+
+func _on_menu_closed(used_upgrade: bool) -> void:
+	if used_upgrade:
+		return
+	_play_reaction()
 
 
 func _anim_length(anim: StringName) -> float:

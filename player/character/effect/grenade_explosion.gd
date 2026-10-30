@@ -72,7 +72,7 @@ func _apply_blast() -> void:
 		var falloff := clampf(1.0 - distance / (blast_radius * 1.6), 0.45, 1.0)
 		target.call(
 			"take_hit",
-			maxi(1, int(round(float(damage) * falloff))),
+			PlayerStats.hit(maxi(1, int(round(float(damage) * falloff)))),
 			push_dir,
 			knockback * falloff,
 			launch

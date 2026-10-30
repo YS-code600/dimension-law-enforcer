@@ -758,7 +758,7 @@ func _poll_hits(cfg: Dictionary) -> void:
 		if _hit_ids.has(target_id):
 			continue
 		_hit_ids[target_id] = true
-		target.take_hit(int(cfg["damage"]), _facing, float(cfg["knockback"]), float(cfg["launch"]))
+		target.take_hit(PlayerStats.hit(int(cfg["damage"])), _facing, float(cfg["knockback"]), float(cfg["launch"]))
 		_play_hit_sound(_attack_id)
 		_spawn_spark(Vector2(target.global_position.x, target.global_position.y - 48.0))
 		_shake = maxf(_shake, 0.6 if kind == &"heavy" else 0.32)

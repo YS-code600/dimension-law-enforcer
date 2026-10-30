@@ -6,6 +6,7 @@ const DAMAGE := 12
 const GROUND_RADIUS := 72.0
 
 var _delay := 0.55
+var _damage := DAMAGE
 var _t := 0.0
 var _erupted := false
 var _hit := false
@@ -43,8 +44,10 @@ func _ready() -> void:
 	queue_redraw()
 
 
-func setup(delay: float) -> void:
+## damage_bonus:Boss 随阶段成长的额外伤害。
+func setup(delay: float, damage_bonus := 0) -> void:
 	_delay = maxf(delay, 0.05)
+	_damage = DAMAGE + maxi(0, damage_bonus)
 
 
 func _add_flame(tex: Texture2D, x: float, scale: float, alpha: float) -> void:
@@ -106,7 +109,7 @@ func _hit_body(body: Node) -> void:
 		return
 	_hit = true
 	if body.has_method("take_damage"):
-		body.call("take_damage", DAMAGE, global_position)
+		body.call("take_damage", _damage, global_position)
 
 
 func _draw() -> void:

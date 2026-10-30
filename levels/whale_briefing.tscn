@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://whale_briefing_001"]
+
+[ext_resource type="PackedScene" path="res://intro.tscn" id="1_intro"]
+
+[node name="WhaleBriefing" instance=ExtResource("1_intro")]
+custom_lines = PackedStringArray("BUG源就在附近了，嘿嘿。", "取出BUG源，作者你的游戏就会恢复正常啦。")
+next_scene = "res://levels/void_room.tscn"
+voice_enabled = false
+portrait_source_path = "res://picture/whale_girl.png"
+speaker_name = "鲸鱼娘"
+loading_text = "> 正在进入黑房间…"
+header_tag = "// BUG SOURCE"

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://levels/boss/fireball.gd" id="1_fb"]
+
+[node name="Fireball" type="Node2D"]
+z_index = 9
+script = ExtResource("1_fb")

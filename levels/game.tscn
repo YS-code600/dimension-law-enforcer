@@ -1,25 +1,208 @@
-[gd_scene load_steps=5 format=3 uid="uid://game_dimension_001"]
+[gd_scene format=3 uid="uid://bpl6ujoo637c4"]
 
 [ext_resource type="PackedScene" path="res://levels/world_main.tscn" id="2_wm"]
-[ext_resource type="PackedScene" path="res://player/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" uid="uid://dygr0yxoakok2" path="res://player/player.tscn" id="4_player"]
 [ext_resource type="PackedScene" path="res://levels/hud.tscn" id="5_hud"]
 
 [sub_resource type="GDScript" id="GDScript_1_game"]
-script/source = "extends Node2D\n## 单世界关卡:不再加载平行世界;任何时候按 + 直接前往火雨房间。\n\nconst FIRE_ROOM := \"res://levels/fire_room.tscn\"\nconst WALK_IN_START_X := 40.0\nconst WALK_IN_SPEED := 120.0\n\n@onready var world: Node2D = $WorldMain\n@onready var player: CharacterBody2D = $Player\n@onready var dim_label: Label = $DimLabel\n@onready var flash: ColorRect = $Flash\n\nvar _leaving := false\n\n\nfunc _ready() -> void:\n\tvar w_player := world.get_node_or_null(\"Player\")\n\tif w_player != null:\n\t\tvar cam := w_player.get_node_or_null(\"Camera2D\")\n\t\tif cam != null:\n\t\t\tcam.enabled = false\n\t\tw_player.queue_free()\n\tvar w_hud := world.get_node_or_null(\"HUD\")\n\tif w_hud != null:\n\t\tw_hud.queue_free()\n\t_start_opening_walk_in()\n\tif dim_label != null:\n\t\tdim_label.text = \"[+] 直接前往火雨房间\"\n\n\nfunc _unhandled_input(event: InputEvent) -> void:\n\tif not (event is InputEventKey):\n\t\treturn\n\tvar key := event as InputEventKey\n\tif not key.pressed or key.echo:\n\t\treturn\n\tif key.keycode == KEY_EQUAL or key.unicode == 43 or key.physical_keycode == KEY_KP_ADD:\n\t\t_jump_to_fire()\n\n\nfunc _jump_to_fire() -> void:\n\tif _leaving:\n\t\treturn\n\t_leaving = true\n\tget_viewport().set_input_as_handled()\n\t_play_flash()\n\tawait get_tree().create_timer(0.3).timeout\n\tget_tree().change_scene_to_file(FIRE_ROOM)\n\n\nfunc _start_opening_walk_in() -> void:\n\tvar spawn := world.get_node_or_null(\"PlayerSpawn\") as Node2D\n\tif spawn == null:\n\t\treturn\n\tvar ground_y := _ground_y_at(world, WALK_IN_START_X)\n\tvar y := spawn.position.y\n\tif ground_y != INF:\n\t\ty = ground_y - 1.0\n\tplayer.global_position = Vector2(WALK_IN_START_X, y)\n\tvar hint := get_node_or_null(\"HUD/CombatHint\") as CanvasItem\n\tif hint != null:\n\t\thint.visible = false\n\tif player.has_method(\"begin_walk_in\"):\n\t\tplayer.call(\"begin_walk_in\", spawn.position.x, WALK_IN_SPEED)\n\t\t_reveal_hint_after_walk_in(hint)\n\n\nfunc _reveal_hint_after_walk_in(hint: CanvasItem) -> void:\n\tif hint == null:\n\t\treturn\n\twhile is_instance_valid(player) and bool(player.get(\"_walk_in_active\")):\n\t\tawait get_tree().physics_frame\n\tif is_instance_valid(hint):\n\t\thint.visible = true\n\n\n## 目标世界 x 处最高的可站立表面 y(越小越高)。\nfunc _ground_y_at(world_node: Node2D, x: float) -> float:\n\tvar best := INF\n\tfor child in world_node.get_node(\"Terrain\").get_children():\n\t\tif not (child is StaticBody2D):\n\t\t\tcontinue\n\t\tvar pos: Vector2 = child.position\n\t\tif child.has_method(\"_points\"):\n\t\t\tvar run: float = child.get(\"run\")\n\t\t\tvar rise: float = child.get(\"rise\")\n\t\t\tvar kind: String = child.get(\"kind\")\n\t\t\tif x < pos.x or x > pos.x + run:\n\t\t\t\tcontinue\n\t\t\tvar lx := clampf(x - pos.x, 0.0, run)\n\t\t\tvar surface: float = pos.y\n\t\t\tif kind == \"down\":\n\t\t\t\tsurface = pos.y - rise + (lx / run) * rise\n\t\t\telse:\n\t\t\t\tsurface = pos.y - (lx / run) * rise\n\t\t\tbest = minf(best, surface)\n\t\telse:\n\t\t\tvar sz = child.get(\"size\")\n\t\t\tif sz == null:\n\t\t\t\tcontinue\n\t\t\tvar half_w: float = sz.x * 0.5\n\t\t\tif x < pos.x - half_w or x > pos.x + half_w:\n\t\t\t\tcontinue\n\t\t\tvar top: float = pos.y - sz.y * 0.5\n\t\t\tbest = minf(best, top)\n\treturn best\n\n\nfunc _play_flash() -> void:\n\tif flash == null:\n\t\treturn\n\tflash.modulate.a = 0.4\n\tflash.visible = true\n\tvar tw := create_tween()\n\ttw.tween_property(flash, \"modulate:a\", 0.0, 0.3)\n\ttw.tween_callback(func() -> void: flash.visible = false)\n"
+script/source = "extends Node2D
+## 单世界关卡:不再加载平行世界;任何时候按 + 直接前往火雨房间。
 
-[node name="Game" type="Node2D"]
+const FIRE_ROOM := \"res://levels/fire_room.tscn\"
+const WALK_IN_START_X := 40.0
+const WALK_IN_SPEED := 120.0
+## 第一个房间的小怪被击败后多少秒原地刷新
+const ENEMY_RESPAWN_SECONDS := 10.0
+const UI_FONT := preload(\"res://levels/ui/ui_font.gd\")
+
+@onready var world: Node2D = $WorldMain
+@onready var player: CharacterBody2D = $Player
+@onready var dim_label: Label = $DimLabel
+@onready var flash: ColorRect = $Flash
+
+var _leaving := false
+
+
+func _ready() -> void:
+	var w_player := world.get_node_or_null(\"Player\")
+	if w_player != null:
+		var cam := w_player.get_node_or_null(\"Camera2D\")
+		if cam != null:
+			cam.enabled = false
+		w_player.queue_free()
+	var w_hud := world.get_node_or_null(\"HUD\")
+	if w_hud != null:
+		w_hud.queue_free()
+	_setup_enemy_respawn()
+	if dim_label != null:
+		dim_label.add_theme_font_override(\"font\", UI_FONT.make(false))
+	if _returning_from_boss():
+		_spawn_at_portal()
+	else:
+		_start_opening_walk_in()
+		if dim_label != null:
+			dim_label.text = \"[+] 直接前往火雨房间\"
+
+
+## 刚从 Boss 房间死出来:把主角放在黑色传送门前。
+func _returning_from_boss() -> bool:
+	var progress := get_node_or_null(\"/root/BossProgress\")
+	return progress != null and bool(progress.call(\"take_returning\"))
+
+
+func _spawn_at_portal() -> void:
+	var portal := world.get_node_or_null(\"Extraction\") as Node2D
+	var spot := Vector2(11830.0, 600.0)
+	if portal != null:
+		spot = portal.global_position + Vector2(-120.0, -56.0)
+	player.global_position = spot
+	# 同伴精灵跟着一起回来(否则会被丢在地图另一头),并从此跟着主角走
+	var npc := world.get_node_or_null(\"VioletCompanion\") as Node2D
+	if npc != null:
+		npc.global_position = spot + Vector2(70.0, 0.0)
+		npc.set(\"velocity\", Vector2.ZERO)
+		if npc.has_method(\"set_following\"):
+			npc.call(\"set_following\", true)
+	var cam := player.get_node_or_null(\"Camera2D\") as Camera2D
+	if cam != null:
+		cam.reset_smoothing()
+	if dim_label != null:
+		var progress := get_node_or_null(\"/root/BossProgress\")
+		var phase := int(progress.get(\"phase\")) if progress != null else 1
+		_show_portal_hint(\"回到传送门前 · 继续挑战第 %d 阶段\" % phase)
+
+
+## 顶部提示(放在 HUD 的 CanvasLayer 里才是屏幕坐标;DimLabel 挂在 Node2D 下会被相机带走)。
+func _show_portal_hint(text: String) -> void:
+	var hud := get_node_or_null(\"HUD\") as CanvasLayer
+	if hud == null:
+		return
+	var tip := Label.new()
+	tip.name = \"ResumeTip\"
+	tip.text = text
+	tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tip.add_theme_font_override(\"font\", UI_FONT.make(false))
+	tip.add_theme_font_size_override(\"font_size\", 18)
+	tip.add_theme_color_override(\"font_color\", Color(0.55, 0.95, 1, 1))
+	tip.add_theme_color_override(\"font_outline_color\", Color(0, 0, 0, 0.9))
+	tip.add_theme_constant_override(\"outline_size\", 6)
+	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tip.position = Vector2(420.0, 10.0)
+	tip.size = Vector2(440.0, 32.0)
+	hud.add_child(tip)
+	var tw := create_tween()
+	tw.tween_interval(3.0)
+	tw.tween_property(tip, \"modulate:a\", 0.0, 0.8)
+	tw.tween_callback(tip.queue_free)
+
+
+## 第一个房间的小怪被击败后 10 秒原地刷新。
+func _setup_enemy_respawn() -> void:
+	for node in world.find_children(\"*\", \"\", true, false):
+		if node.is_in_group(\"enemy\") and \"respawn_seconds\" in node:
+			node.set(\"respawn_seconds\", ENEMY_RESPAWN_SECONDS)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not (event is InputEventKey):
+		return
+	var key := event as InputEventKey
+	if not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_EQUAL or key.unicode == 43 or key.physical_keycode == KEY_KP_ADD:
+		_jump_to_fire()
+
+
+func _jump_to_fire() -> void:
+	if _leaving:
+		return
+	_leaving = true
+	get_viewport().set_input_as_handled()
+	_play_flash()
+	await get_tree().create_timer(0.3).timeout
+	get_tree().change_scene_to_file(FIRE_ROOM)
+
+
+func _start_opening_walk_in() -> void:
+	var spawn := world.get_node_or_null(\"PlayerSpawn\") as Node2D
+	if spawn == null:
+		return
+	var ground_y := _ground_y_at(world, WALK_IN_START_X)
+	var y := spawn.position.y
+	if ground_y != INF:
+		y = ground_y - 1.0
+	player.global_position = Vector2(WALK_IN_START_X, y)
+	var hint := get_node_or_null(\"HUD/CombatHint\") as CanvasItem
+	if hint != null:
+		hint.visible = false
+	if player.has_method(\"begin_walk_in\"):
+		player.call(\"begin_walk_in\", spawn.position.x, WALK_IN_SPEED)
+		_reveal_hint_after_walk_in(hint)
+
+
+func _reveal_hint_after_walk_in(hint: CanvasItem) -> void:
+	if hint == null:
+		return
+	while is_instance_valid(player) and bool(player.get(\"_walk_in_active\")):
+		await get_tree().physics_frame
+	if is_instance_valid(hint):
+		hint.visible = true
+
+
+## 目标世界 x 处最高的可站立表面 y(越小越高)。
+func _ground_y_at(world_node: Node2D, x: float) -> float:
+	var best := INF
+	for child in world_node.get_node(\"Terrain\").get_children():
+		if not (child is StaticBody2D):
+			continue
+		var pos: Vector2 = child.position
+		if child.has_method(\"_points\"):
+			var run: float = child.get(\"run\")
+			var rise: float = child.get(\"rise\")
+			var kind: String = child.get(\"kind\")
+			if x < pos.x or x > pos.x + run:
+				continue
+			var lx := clampf(x - pos.x, 0.0, run)
+			var surface: float = pos.y
+			if kind == \"down\":
+				surface = pos.y - rise + (lx / run) * rise
+			else:
+				surface = pos.y - (lx / run) * rise
+			best = minf(best, surface)
+		else:
+			var sz = child.get(\"size\")
+			if sz == null:
+				continue
+			var half_w: float = sz.x * 0.5
+			if x < pos.x - half_w or x > pos.x + half_w:
+				continue
+			var top: float = pos.y - sz.y * 0.5
+			best = minf(best, top)
+	return best
+
+
+func _play_flash() -> void:
+	if flash == null:
+		return
+	flash.modulate.a = 0.4
+	flash.visible = true
+	var tw := create_tween()
+	tw.tween_property(flash, \"modulate:a\", 0.0, 0.3)
+	tw.tween_callback(func() -> void: flash.visible = false)
+"
+
+[node name="Game" type="Node2D" unique_id=583519321]
 script = SubResource("GDScript_1_game")
 
-[node name="WorldMain" parent="." instance=ExtResource("2_wm")]
+[node name="WorldMain" parent="." unique_id=321616509 instance=ExtResource("2_wm")]
 
-[node name="Player" parent="." instance=ExtResource("4_player")]
+[node name="Player" parent="." unique_id=1676430825 instance=ExtResource("4_player")]
 position = Vector2(220, 600)
 camera_limits = Rect2(0, 80, 12200, 660)
 
-[node name="HUD" parent="." instance=ExtResource("5_hud")]
+[node name="HUD" parent="." unique_id=839980293 instance=ExtResource("5_hud")]
 
-[node name="DimLabel" type="Label" parent="."]
-layout_mode = 1
+[node name="DimLabel" type="Label" parent="." unique_id=247137940]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -29,21 +212,20 @@ offset_right = 220.0
 offset_bottom = 38.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.45, 0.9, 1, 0.9)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 6
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_y = 2
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 17
 text = "[+] 直接前往火雨房间"
 horizontal_alignment = 1
 
-[node name="Flash" type="ColorRect" parent="."]
+[node name="Flash" type="ColorRect" parent="." unique_id=274461800]
 visible = false
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.6, 0.9, 1, 1)
 mouse_filter = 2
+color = Color(0.6, 0.9, 1, 1)

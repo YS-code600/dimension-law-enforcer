@@ -23,6 +23,16 @@ const LINES := [
 @export var voice_paths: PackedStringArray = []
 @export var portrait_texture: Texture2D
 @export var portrait_source_path := "res://picture/dafeiyu.png"
+## 说话人名字(留空 = 用场景里原本的「大肥鱼」)
+@export var speaker_name := ""
+## 每句的说话人(留空的那句沿用 speaker_name)
+@export var speaker_names: PackedStringArray = []
+## 每句的立绘(留空的那句沿用上一张)
+@export var portrait_paths: PackedStringArray = []
+## true = 当成本场景里的浮层用:对白结束不切场景,而是发 finished 并淡出自己
+@export var stay_in_scene := false
+
+signal finished
 @export var loading_text := "> 正在进入游戏世界…"
 @export var header_tag := "// PRE-MISSION BRIEFING"
 
@@ -39,6 +49,7 @@ const LINES := [
 @onready var voice: AudioStreamPlayer = %Voice
 
 var _line_index := -1
+var _portrait_path := ""
 var _lines: Array = []
 var _time := 0.0
 var _leaving := false
@@ -54,17 +65,22 @@ func _ready() -> void:
 	var brand_sub := get_node_or_null("Brand/BrandSub") as Label
 	if brand_sub != null:
 		brand_sub.text = header_tag
+	var speaker := get_node_or_null("Dialog/Margin/Content/SpeakerRow/SpeakerName") as Label
+	if speaker != null and not speaker_name.is_empty():
+		speaker.text = speaker_name
 	_input_ready_at = Time.get_ticks_msec() + 1100
 	_load_voices()
 	_duck_music()
 	if portrait_texture != null:
 		portrait.texture = portrait_texture
 	else:
-		var tex := load(portrait_source_path) as Texture2D
+		var tex: Texture2D = null
+		if ResourceLoader.exists(portrait_source_path):
+			tex = load(portrait_source_path) as Texture2D
 		if tex != null:
 			portrait.texture = tex
 		else:
-			# 编辑器尚未导入新立绘时，直接从源 PNG 建纹理，保证不空镜。
+			# 还没导入的立绘(或 jpg)直接从源文件建纹理,保证不空镜。
 			var img := Image.new()
 			if img.load(portrait_source_path) == OK:
 				portrait.texture = ImageTexture.create_from_image(img)
@@ -159,7 +175,37 @@ func _show_line(index: int) -> void:
 	body.visible_characters = -1
 	progress.text = "%02d / %02d" % [index + 1, _lines.size()]
 	continue_arrow.visible = true
+	var label := get_node_or_null("Dialog/Margin/Content/SpeakerRow/SpeakerName") as Label
+	if label != null:
+		if index < speaker_names.size() and not speaker_names[index].is_empty():
+			label.text = speaker_names[index]
+		elif not speaker_name.is_empty():
+			label.text = speaker_name
+	_apply_line_portrait(index)
 	_play_voice(index)
+
+
+## 逐句换立绘(留空或和上一句相同就不动)。
+func _apply_line_portrait(index: int) -> void:
+	if index >= portrait_paths.size():
+		return
+	var path := portrait_paths[index]
+	if path.is_empty() or path == _portrait_path:
+		return
+	_portrait_path = path
+	var tex: Texture2D = null
+	if ResourceLoader.exists(path):
+		tex = load(path) as Texture2D
+	if tex == null:
+		var img := Image.new()
+		if img.load(path) == OK:
+			tex = ImageTexture.create_from_image(img)
+	if tex == null:
+		return
+	portrait.texture = tex
+	# 像素小图放大用最近邻,立绘大图保持平滑
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST \
+		if tex.get_width() < 256 else CanvasItem.TEXTURE_FILTER_LINEAR
 
 
 func _play_voice(index: int) -> void:
@@ -213,4 +259,11 @@ func _finish() -> void:
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE)
 	await tw.finished
+	if stay_in_scene:
+		# 浮层用法:不切场景,发个信号让调用方继续流程,自己淡出销毁
+		finished.emit()
+		var out := create_tween()
+		out.tween_property(self, "modulate:a", 0.0, 0.35)
+		out.tween_callback(queue_free)
+		return
 	get_tree().change_scene_to_file(next_scene)

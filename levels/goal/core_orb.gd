@@ -1,11 +1,11 @@
 extends Node2D
-## 衍月核心:研究员被击倒后在仪器右侧生成的光球。
-## 主角靠近显示「Q 取得衍月核心」,按 Q 发出 collected 信号。
+## BUG源:研究员被击倒后在仪器右侧生成的光球。
+## 主角靠近显示「Q 取得BUG源」,按 Q 发出 collected 信号。
 
 signal collected
 
 const INTERACT_RADIUS := 120.0
-const PROMPT_TEXT := "Q  取得衍月核心"
+const PROMPT_TEXT := "Q  取得BUG源"
 
 var _player: Node2D
 var _prompt: Label

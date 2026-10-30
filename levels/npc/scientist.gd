@@ -27,8 +27,8 @@ func _ready() -> void:
 	_hurtbox = get_node_or_null("Hurtbox")
 	if _hurtbox != null:
 		_hurtbox.collision_layer = 0
-	# 初始朝向:右
-	_facing_right = true
+	# 初始朝向:素材默认面朝左
+	_facing_right = false
 	_sprite.flip_h = false
 
 
@@ -47,7 +47,8 @@ func face_player() -> void:
 	if _player == null:
 		return
 	_facing_right = _player.global_position.x >= global_position.x
-	_sprite.flip_h = not _facing_right
+	# 素材本身面朝左,只有要朝右时才镜像
+	_sprite.flip_h = _facing_right
 
 
 func start_talk() -> void:

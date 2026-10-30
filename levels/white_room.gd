@@ -8,14 +8,28 @@ const MAIN_MENU := "res://main.tscn"
 const ROOM_SIZE := Vector2(1152, 648)
 ## 光球生成在仪器(700,600,0.75 倍)右侧的水平位置。
 const ORB_POSITION := Vector2(892.0, 566.0)
-const ENDING_WHITE := "已获取衍月核心"
+const ENDING_WHITE := "已获取BUG源"
 const ENDING_YELLOW := "任务完成"
 const LINES := [
-	"衍月，出自我手",
-	"设计之初就是为了阻止军方泛滥地穿越平行时空",
-	"她不会为你们所用",
+	"终于让豆包帮我完成游戏的修改了……",
+	"嗯。。。你是谁？怎么来到这里的",
+	"豆包，豆包，我该怎么办？",
+	"我以最直白，最不绕弯子的方式告诉你，你可以轻松击败入侵者，可以直接上。",
 ]
-const DEATH_LINE := "你们又会将这个混乱的世界变得如何呢"
+## 每句的说话人(和 LINES 一一对应)
+const SPEAKERS := ["程序猿", "程序猿", "程序猿", "豆包"]
+## 每句的立绘:程序猿用他本人的像素头像,豆包用对话框那头像
+const PORTRAIT_AUTHOR := "res://levels/npc/scientist.png"
+const PORTRAIT_DOUBAO := "res://picture/programmer.png"
+const PORTRAITS := [PORTRAIT_AUTHOR, PORTRAIT_AUTHOR, PORTRAIT_AUTHOR, PORTRAIT_DOUBAO]
+const VN_SCENE := preload("res://intro.tscn")
+## 被打倒后的对白
+const DEATH_LINES := [
+	"呃啊。。。",
+	"对不起是我搞错了，这次我直接跟你说100%大实话，你根本不是她的对手。",
+]
+const DEATH_SPEAKERS := ["程序猿", "豆包"]
+const DEATH_PORTRAITS := [PORTRAIT_AUTHOR, PORTRAIT_DOUBAO]
 
 @onready var _player: Node2D = $Player
 @onready var _npc: Node2D = $Scientist
@@ -42,32 +56,57 @@ func _ready() -> void:
 	_run_intro.call_deferred()
 
 
-## 进场演出:锁定操作 → 研究员转向 → 三句台词(每句 2 秒) → 开打。
+## 进场演出:锁定操作 → 研究员转向 → galgame 式对白(四句) → 开打。
 func _run_intro() -> void:
 	await get_tree().create_timer(0.8).timeout
 	_player.process_mode = Node.PROCESS_MODE_DISABLED
 	_npc.call("start_talk")
 	_npc.call("face_player")
 	await get_tree().create_timer(0.3).timeout
-	for line in LINES:
-		_dialogue.call("show_line", line, _npc.global_position + Vector2(0, -215), 2.0)
-		await get_tree().create_timer(2.15).timeout
+	await _play_vn()
 	_player.process_mode = Node.PROCESS_MODE_INHERIT
 	_npc.call("start_fight")
 	if _bar != null and _bar.has_method("bind"):
 		_bar.call("bind", _npc, "研究员")
 
 
+## 用和黑房间同一套 galgame 界面播白房间的对白(浮层,不切场景)。
+func _play_vn(lines: Array = LINES, speakers: Array = SPEAKERS,
+		portraits: Array = PORTRAITS, loading := "> 战斗开始") -> void:
+	var vn := VN_SCENE.instantiate()
+	vn.set("custom_lines", PackedStringArray(lines))
+	vn.set("speaker_names", PackedStringArray(speakers))
+	vn.set("portrait_paths", PackedStringArray(portraits))
+	vn.set("voice_enabled", false)
+	vn.set("stay_in_scene", true)
+	vn.set("portrait_source_path", String(portraits[0]) if portraits.size() > 0 else PORTRAIT_AUTHOR)
+	vn.set("header_tag", "// AUTHOR")
+	vn.set("loading_text", loading)
+	var layer := CanvasLayer.new()
+	layer.name = "VN"
+	layer.layer = 30
+	add_child(layer)
+	layer.add_child(vn)
+	await vn.finished
+	if is_instance_valid(layer):
+		layer.queue_free()
+
+
+## 打倒研究员:再来一段对白,然后他淡出、留下BUG源。
 func _on_npc_defeated() -> void:
 	if _npc == null or not is_instance_valid(_npc):
 		_spawn_core_orb()
 		return
-	_dialogue.call("show_line", DEATH_LINE, _npc.global_position + Vector2(0, -215), 2.0)
+	if _player != null:
+		_player.process_mode = Node.PROCESS_MODE_DISABLED
+	await _play_vn(DEATH_LINES, DEATH_SPEAKERS, DEATH_PORTRAITS, "> 战斗结束")
+	if _player != null:
+		_player.process_mode = Node.PROCESS_MODE_INHERIT
 	_npc.call("fade_out", 2.0)
 	_spawn_core_orb()
 
 
-## 研究员倒下后,在仪器右侧生成衍月核心光球。
+## 研究员倒下后,在仪器右侧生成BUG源光球。
 func _spawn_core_orb() -> void:
 	if _orb != null or _ending:
 		return
@@ -85,7 +124,7 @@ func _on_core_collected() -> void:
 	_play_ending()
 
 
-## 结束演出:黑屏 → 白字「已获取衍月核心」2 秒 → 黄字「任务完成」→ 回主菜单。
+## 结束演出:黑屏 → 白字「已获取BUG源」2 秒 → 黄字「任务完成」→ 回主菜单。
 func _play_ending() -> void:
 	if _player != null and is_instance_valid(_player):
 		_player.process_mode = Node.PROCESS_MODE_DISABLED

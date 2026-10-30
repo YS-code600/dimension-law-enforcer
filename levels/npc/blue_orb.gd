@@ -6,6 +6,7 @@ const SPEED := 175.0
 const LIFETIME := 4.0
 
 var _dir := Vector2.RIGHT
+var _damage := DAMAGE
 var _life := LIFETIME
 var _dead := false
 
@@ -18,8 +19,10 @@ func _ready() -> void:
 	_sprite.play(&"burst")
 
 
-func setup(dir: Vector2) -> void:
+## dir:飞行方向;damage:命中伤害(不传就是默认值)。
+func setup(dir: Vector2, damage := DAMAGE) -> void:
 	_dir = dir.normalized()
+	_damage = maxi(1, damage)
 
 
 func _physics_process(delta: float) -> void:
@@ -35,7 +38,7 @@ func _on_body_entered(body: Node) -> void:
 	if _dead:
 		return
 	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.call("take_damage", DAMAGE, global_position)
+		body.call("take_damage", _damage, global_position)
 	pop()
 
 

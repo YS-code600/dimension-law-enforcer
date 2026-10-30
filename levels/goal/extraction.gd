@@ -3,6 +3,7 @@ extends Node2D
 ## 不播放 WIN/WARNING,也不播放爆炸。
 
 const NEXT_SCENE := "res://levels/final_briefing.tscn"
+const BOSS_ROOM := "res://levels/fire_room.tscn"
 const PORTAL_PATH := "res://picture/portal_gray.png"
 
 @onready var _zone: Area2D = $Zone
@@ -47,4 +48,9 @@ func _try_enter(body: Node) -> void:
 	if _leaving or not body.is_in_group("player"):
 		return
 	_leaving = true
+	# 已经在打 Boss 的途中(死过一次再进来):跳过简报,直接回火雨房间继续那一阶段
+	var progress := get_node_or_null("/root/BossProgress")
+	if progress != null and int(progress.get("phase")) > 1:
+		get_tree().call_deferred("change_scene_to_file", BOSS_ROOM)
+		return
 	get_tree().call_deferred("change_scene_to_file", NEXT_SCENE)

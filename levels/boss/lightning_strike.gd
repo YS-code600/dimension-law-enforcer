@@ -5,6 +5,7 @@ const TEXTURE_PATH := "res://picture/boss/fx_lightning.png"
 const DAMAGE := 16
 
 var _delay := 0.55
+var _damage := DAMAGE
 var _t := 0.0
 var _struck := false
 var _hit := false
@@ -51,8 +52,10 @@ func _ready() -> void:
 	_area.body_entered.connect(_on_body_entered)
 
 
-func setup(delay: float) -> void:
+## damage_bonus:Boss 随阶段成长的额外伤害。
+func setup(delay: float, damage_bonus := 0) -> void:
 	_delay = maxf(delay, 0.05)
+	_damage = DAMAGE + maxi(0, damage_bonus)
 
 
 func _process(delta: float) -> void:
@@ -96,7 +99,7 @@ func _hit_body(body: Node) -> void:
 		return
 	_hit = true
 	if body.has_method("take_damage"):
-		body.call("take_damage", DAMAGE, global_position)
+		body.call("take_damage", _damage, global_position)
 
 
 func _flash_screen() -> void:

@@ -6,12 +6,10 @@ extends Node2D
 const FLOOR_TILE := preload("res://levels/hazards/fire_room_ground.png")
 const BOSS_BAR_SCRIPT := preload("res://levels/ui/boss_bar.gd")
 const DIALOGUE_SCRIPT := preload("res://levels/ui/boss_dialogue.gd")
-const BUG_ENDING := preload("res://levels/ui/bug_ending.tscn")
 const BG_BLUR := preload("res://shaders/bg_blur.gdshader")
-const VOID_SCENE := "res://levels/void_room.tscn"
+## 打完最后一阶段 Boss 后先播鲸鱼娘的 galgame 式对白,再进黑房间
+const WHALE_BRIEFING := "res://levels/whale_briefing.tscn"
 const PLAYER_BASE_FRAMES := preload("res://player/red_frames.tres")
-const PLAYER_DEATH_FRAMES := preload("res://player/character/death_frames.tres")
-const PISTOL_BANG := preload("res://audio/explosions/grenade_bang.ogg")
 const BGM_PATH := "res://audio/music/level3.ogg"
 const BGM_DB := -8.0
 const GROUND_Y := 600.0
@@ -20,10 +18,22 @@ const ROOM_SIZE := Vector2(1152, 648)
 const REVEAL_TINT := Color(0.55, 0.9, 1.0)
 const REVEAL_NORMAL := Color(1, 1, 1)
 
-## 背景使用 Kenney 橙色沙漠场景(每次击败衍月仍会走一遍切换演出,画面不变)。
+## 背景:[0] 是最开始的场景;之后每被打倒一次就换成下一张(见 BOSS_REVIVES)。
 const BG_PATHS := [
 	"res://picture/fire_room_bg/07_kenney_desert.png",
+	"res://picture/fire_room_bg/01_pink_city.png",
+	"res://picture/fire_room_bg/08_blue_night_skyline.png",
+	"res://picture/fire_room_bg/09_dark_city.webp",
+	"res://picture/fire_room_bg/02_orange_silhouette.png",
 ]
+## Boss 被打倒后原地复活的次数:每复活一次就换一张背景。
+const BOSS_REVIVES := 4
+## 第几次被打倒才真正结束(不再复活),进入真结局。
+const FINAL_DEFEAT := BOSS_REVIVES + 1
+## 每次打倒 Boss 掉的 token(按阶段顺序)
+const TOKENS_PER_PHASE := [200, 400, 800, 1200, 1600]
+## 死亡后退回的第一房间
+const FIRST_ROOM := "res://levels/game.tscn"
 const DEFEAT_LINES := [
 	"在平行时空穿越的你，是无法击败操控平行时空的我的",
 	"我可以输无数次，而你一次都不行",
@@ -41,12 +51,9 @@ var _bg: TextureRect
 var _bg_mat: ShaderMaterial
 var _music: AudioStreamPlayer
 var _transitioning := false
-var _pistol_window := 0.0
-var _pistol_unlocked := false
-var _self_shot_done := false
 var _defeats := 0
 var _intro_done := false
-var _bug_ending_started := false
+var _returning_home := false
 
 
 func _ready() -> void:
@@ -69,12 +76,15 @@ func _process(delta: float) -> void:
 	# 背景切换期间持续震动
 	if _transitioning and _player != null:
 		_player.set("_shake", maxf(float(_player.get("_shake")), 0.9))
-	if _pistol_window > 0.0:
-		_pistol_window = maxf(0.0, _pistol_window - delta)
 
 
 ## 开场演出:衍月飘到右侧 → 身形蓝白闪烁几次 → 定住并进入敌对形态。
 func _play_intro() -> void:
+	# 上次死在 Boss 房间:直接从那一阶段开打,不放开场演出
+	var resume_phase := int(BossProgress.phase)
+	if resume_phase > 1:
+		_resume_phase(resume_phase)
+		return
 	await get_tree().create_timer(1.0).timeout
 	if _npc.has_method("set_following"):
 		_npc.call("set_following", false)
@@ -101,38 +111,94 @@ func _play_intro() -> void:
 		_npc.connect("revived", _on_boss_revived)
 
 
-## 击败豆包:前两次回满血量并切背景;第三次进入真结局。
+## 从上次死亡的阶段继续:跳过开场演出,Boss 直接以该阶段的状态开战。
+func _resume_phase(phase: int) -> void:
+	_defeats = clampi(phase - 1, 0, FINAL_DEFEAT - 1)
+	_intro_done = true
+	if _npc.has_method("set_following"):
+		_npc.call("set_following", false)
+	_npc.global_position = Vector2(ROOM_SIZE.x - 190.0, BOSS_FLY_Y)
+	_npc.set("_phase", _defeats)
+	if _npc.has_method("become_hostile"):
+		_npc.call("become_hostile")
+	_apply_background_now(_defeats)
+	if _boss_bar != null and _boss_bar.has_method("bind"):
+		_boss_bar.call("bind", _npc, "豆包")
+	if not _npc.is_connected("defeated", _on_boss_defeated):
+		_npc.connect("defeated", _on_boss_defeated)
+	if not _npc.is_connected("revived", _on_boss_revived):
+		_npc.connect("revived", _on_boss_revived)
+
+
+## 击败豆包:前 BOSS_REVIVES 次回满血量 + 换背景并复活;最后一次直接进全黑房间。
 func _on_boss_defeated() -> void:
 	_defeats += 1
-	if _defeats >= 3:
-		_start_bug_ending()
+	_award_tokens(_defeats)
+	if _defeats >= FINAL_DEFEAT:
+		_finish_run()
 		return
 	_heal_player()
 	_start_background_transition(_defeats)
 
 
-## 第三次击败后:停止 Boss 复活,弹出最后一段对话,再黑屏回主菜单。
-func _start_bug_ending() -> void:
-	if _bug_ending_started:
+## 打倒一次 Boss 掉一份 token(200/400/800/1200/1600),并在它身上飘一行字。
+func _award_tokens(index: int) -> void:
+	if index <= 0 or index > TOKENS_PER_PHASE.size():
 		return
-	_bug_ending_started = true
+	var amount := int(TOKENS_PER_PHASE[index - 1])
+	var tokens := get_node_or_null("/root/Tokens")
+	if tokens != null:
+		tokens.call("add", amount)
+	_pop_token_text(amount)
+
+
+func _pop_token_text(amount: int) -> void:
+	var label := Label.new()
+	label.text = "+%d TOKEN" % amount
+	label.z_index = 40
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.42))
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.add_theme_constant_override("outline_size", 8)
+	add_child(label)
+	var start := Vector2(560.0, 360.0)
+	if _npc != null and is_instance_valid(_npc):
+		start = _npc.global_position + Vector2(-52.0, -140.0)
+	label.global_position = start
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(label, "global_position:y", start.y - 96.0, 1.2)
+	tw.tween_property(label, "modulate:a", 0.0, 0.7).set_delay(0.5)
+	tw.chain().tween_callback(label.queue_free)
+
+
+## 打完最后一阶段 Boss:黑屏后直接进入全黑房间(不再放 BUG 结局演出)。
+func _finish_run() -> void:
+	if _returning_home:
+		return
+	_returning_home = true
+	# Boss 打完,清掉「从某阶段继续」的进度
+	var progress := get_node_or_null("/root/BossProgress")
+	if progress != null:
+		progress.call("clear")
 	if _npc != null and _npc.has_method("stop_revive"):
 		_npc.call("stop_revive")
-	var ending := BUG_ENDING.instantiate()
-	add_child(ending)
+	if _fade != null:
+		var tw := create_tween()
+		tw.tween_property(_fade, "color:a", 1.0, 1.0)
+		await get_tree().create_timer(1.1).timeout
+	get_tree().change_scene_to_file(WHALE_BRIEFING)
 
 
-## 衍月复活(倒地 2 秒后)时才弹出对应台词;从第 3 次循环起,台词念完再给手枪提示。
+## 衍月复活(倒地 2 秒后)时才弹出对应台词。
 func _on_boss_revived() -> void:
 	_show_defeat_line()
-	if _defeats >= 3:
-		await get_tree().create_timer(2.2).timeout
-		_open_pistol_window()
 
 
 # ---------------------------------------------------------------- 手枪 / 死亡
 
-## 接管主角的死亡:第 3 次循环后改为原地满血复活(并弹出字幕),之前仍是原来的死亡菜单。
+## 接管主角的死亡:进入最后一轮后改为原地满血复活(并弹出字幕),之前仍是原来的死亡菜单。
 func _setup_death_handling() -> void:
 	var hud := get_node_or_null("HUD")
 	if hud != null:
@@ -143,90 +209,19 @@ func _setup_death_handling() -> void:
 		_player.connect("died", _on_player_died)
 
 
+## 死在 Boss 房间:记住打到第几阶段,黑屏后退回第一房间的传送门前。
 func _on_player_died() -> void:
-	if _defeats >= 3:
-		_revive_player()
-	else:
-		var hud := get_node_or_null("HUD")
-		if hud != null and hud.has_method("_on_player_died"):
-			hud.call("_on_player_died")
-
-
-func _revive_player() -> void:
-	var max_hp := int(_player.get("max_health"))
-	_player.set("state", 0)
-	_player.set("velocity", Vector2.ZERO)
-	_player.set("health", max_hp)
-	_player.set("_death_confirmed", false)
-	_player.set("_invuln_until", Time.get_ticks_msec() / 1000.0 + 1.2)
-	var sprite := _player.get_node_or_null("Sprite") as AnimatedSprite2D
-	if sprite != null:
-		sprite.sprite_frames = PLAYER_BASE_FRAMES
-		sprite.play(&"idle")
-	_player.emit_signal("health_changed", max_hp, max_hp)
-	if _player.global_position.y > 660.0:
-		_player.global_position = Vector2(420.0, 600.0)
-	_player.set("_shake", 0.0)
-	_open_pistol_window()
-
-
-## 头顶出现 3 秒字幕;字幕第一次出现后,Q 就一直有效(不再受 3 秒限制)。
-func _open_pistol_window() -> void:
-	if _self_shot_done:
+	if _returning_home:
 		return
-	_pistol_unlocked = true
-	_pistol_window = 3.0
-	if _dialogue != null:
-		_dialogue.call("show_line", "怀里的手枪似乎在震动\n[按 Q 举枪]", _player.global_position + Vector2(0, -150), 3.0)
-	print("[fire_room] 手枪已解锁:任何时候按 Q 都能自尽")
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if _self_shot_done or not _pistol_unlocked:
-		return
-	if event.is_action_pressed("switch_dimension"):
-		get_viewport().set_input_as_handled()
-		_play_self_shot()
-
-
-## 开枪自尽演出:举枪 → 枪口火光 → 枪响 → 倒地 → 淡出 → 进入全黑房间。
-func _play_self_shot() -> void:
-	if _self_shot_done:
-		return
-	_self_shot_done = true
-	_pistol_window = 0.0
-	print("[fire_room] 按 Q → 开枪自尽")
-	_player.process_mode = Node.PROCESS_MODE_DISABLED
-	var sprite := _player.get_node_or_null("Sprite") as AnimatedSprite2D
-	var gun := _player.get_node_or_null("Gun") as Sprite2D
-	var muzzle := _player.get_node_or_null("GunMuzzle") as Sprite2D
-	if gun != null:
-		gun.visible = true
-		gun.z_index = 20
-		gun.position = Vector2(2.0, -104.0)
-		gun.rotation = -PI * 0.5
-	if muzzle != null:
-		muzzle.visible = true
-		muzzle.z_index = 21
-		muzzle.position = Vector2(4.0, -136.0)
-		muzzle.rotation = 0.0
-	var sfx := AudioStreamPlayer.new()
-	sfx.stream = PISTOL_BANG
-	sfx.volume_db = -3.0
-	add_child(sfx)
-	sfx.play()
-	if sprite != null:
-		sprite.sprite_frames = PLAYER_DEATH_FRAMES
-		sprite.play(&"death")
-	await get_tree().create_timer(0.35).timeout
-	if muzzle != null:
-		muzzle.visible = false
-	await get_tree().create_timer(0.5).timeout
+	_returning_home = true
+	var progress := get_node_or_null("/root/BossProgress")
+	if progress != null:
+		progress.call("remember_phase", clampi(_defeats + 1, 1, FINAL_DEFEAT))
 	if _fade != null:
 		var tw := create_tween()
-		tw.tween_property(_fade, "color:a", 1.0, 0.7)
-		await tw.finished
-	get_tree().change_scene_to_file(VOID_SCENE)
+		tw.tween_property(_fade, "color:a", 1.0, 0.9)
+		await get_tree().create_timer(1.0).timeout
+	get_tree().change_scene_to_file(FIRST_ROOM)
 
 
 ## 背景切换演出:模糊 → 画面震动 → 全黑 → 换图 → 淡出黑场,共 2 秒。
@@ -261,6 +256,16 @@ func _heal_player() -> void:
 	var max_hp := int(_player.get("max_health"))
 	_player.set("health", max_hp)
 	_player.emit_signal("health_changed", max_hp, max_hp)
+
+
+## 直接把背景换成第 index 张,不播切换演出(从存档阶段继续时用)。
+func _apply_background_now(index: int) -> void:
+	if _bg == null:
+		return
+	var path: String = BG_PATHS[clampi(index, 0, BG_PATHS.size() - 1)]
+	var tex := _load_texture(path)
+	if tex != null:
+		_bg.texture = tex
 
 
 func _show_defeat_line() -> void:
@@ -417,9 +422,11 @@ func _ensure_background() -> void:
 		_sky.visible = false
 
 
-## 优先走导入资源;导入缓存缺失时直接读 PNG,保证背景不会丢。
+## 优先走导入资源;导入缓存缺失时直接读原始图片(PNG/WebP 都行),保证背景不会丢。
 func _load_texture(path: String) -> Texture2D:
-	var tex := load(path) as Texture2D
+	var tex: Texture2D = null
+	if ResourceLoader.exists(path):
+		tex = load(path) as Texture2D
 	if tex != null:
 		return tex
 	var img := Image.new()

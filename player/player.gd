@@ -61,6 +61,8 @@ const REFLECTED_SHOT := preload("res://player/character/effect/reflected_shot.ts
 const PARRY_RADIUS := 120.0
 const PARRY_COOLDOWN := 3.0
 const PARRY_CENTER_Y := -50.0
+## 受伤后的无敌时长(会被「加强无敌时间」放大)
+const HIT_INVULN_TIME := 0.5
 
 ## 每套攻击的判定窗口以动画帧编号标记,保证判定与画面同步。
 const ATTACKS := {
@@ -188,6 +190,8 @@ var _buffer_at := -99.0
 var _dash_timer := 0.0
 var _dash_ready_at := -99.0
 var _invuln_until := -99.0
+## 未强化时的血量上限(算「加强血量」倍率用)
+var _base_max_health := 0
 var _hurt_timer := 0.0
 var _death_confirmed := false
 
@@ -198,6 +202,11 @@ var _skill_shapes := {}
 var _hit_players: Array[AudioStreamPlayer] = []
 var _hit_voice := 0
 var _parry_ready_at := -99.0
+## 技能演出:锁定播放某个动画 + 无敌
+var _pose_lock := 0.0
+var _pose_anim: StringName = &""
+## 假死:保持死亡姿势、不受伤,按攻击键起身
+var _feigning := false
 
 @onready var _cam: Camera2D = $Camera2D
 @onready var _sprite: AnimatedSprite2D = $Sprite
@@ -209,7 +218,8 @@ var _parry_ready_at := -99.0
 
 func _ready() -> void:
 	add_to_group("player")
-	health = max_health
+	_base_max_health = max_health
+	_apply_stats(true)
 	_cam.limit_left = int(camera_limits.position.x)
 	_cam.limit_top = int(camera_limits.position.y)
 	_cam.limit_right = int(camera_limits.position.x + camera_limits.size.x)
@@ -229,7 +239,35 @@ func _ready() -> void:
 	_play(&"idle", true)
 	health_changed.emit(health, max_health)
 	_ensure_parry_action()
+	_watch_stats()
 	call_deferred("_setup_fire_room")
+
+
+## 变强界面买到「加强血量」后,立刻把上限抬上去并补血。
+func _watch_stats() -> void:
+	var stats := get_node_or_null("/root/PlayerStats")
+	if stats == null or not stats.has_signal("changed"):
+		return
+	if not stats.is_connected("changed", _on_stats_changed):
+		stats.connect("changed", _on_stats_changed)
+
+
+func _on_stats_changed() -> void:
+	_apply_stats()
+
+
+## 把强化倍率套到血量上限;升级时多出来的血也直接补上。
+func _apply_stats(fill := false) -> void:
+	if _base_max_health <= 0:
+		_base_max_health = max_health
+	var target := int(round(float(_base_max_health) * PlayerStats.health_scale()))
+	var gained := target - max_health
+	max_health = target
+	if fill:
+		health = max_health
+	elif gained > 0:
+		health = mini(max_health, health + gained)
+	health_changed.emit(health, max_health)
 
 
 func _process(delta: float) -> void:
@@ -245,6 +283,42 @@ func _process(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	var now := _now()
+	if _pose_lock > 0.0:
+		_pose_lock = maxf(0.0, _pose_lock - delta)
+		velocity.x = move_toward(velocity.x, 0.0, 2400.0 * delta)
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		if _sprite.is_playing():
+			_play(_pose_anim)
+		else:
+			_anim = _pose_anim
+			_sprite.play(_pose_anim)
+		move_and_slide()
+		return
+	if _feigning:
+		var creep := Input.get_axis("move_left", "move_right")
+		if creep != 0.0:
+			_facing = 1 if creep > 0.0 else -1
+			velocity.x = move_toward(velocity.x, creep * move_speed, 2200.0 * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, 2600.0 * delta)
+		if is_on_floor():
+			_last_grounded = _now()
+			velocity.y = 0.0
+			if Input.is_action_just_pressed("jump"):
+				velocity.y = jump_velocity
+		if Input.is_action_just_released("jump") and velocity.y < -170.0:
+			velocity.y = -170.0
+		if not is_on_floor():
+			velocity.y += gravity * delta
+		_sprite.flip_h = _facing < 0
+		move_and_slide()
+		if Input.is_action_just_pressed("attack_light") \
+				or Input.is_action_just_pressed("attack_heavy") \
+				or Input.is_action_just_pressed("attack_dash") \
+				or Input.is_action_just_pressed("grenade"):
+			_exit_feign()
+		return
 	if _switch_anim:
 		if not _switch_death:
 			_update_skill(now)
@@ -745,7 +819,7 @@ func _poll_hits(cfg: Dictionary) -> void:
 		if _hit_ids.has(target_id):
 			continue
 		_hit_ids[target_id] = true
-		target.take_hit(int(cfg["damage"]), _facing, float(cfg["knockback"]), float(cfg["launch"]))
+		target.take_hit(PlayerStats.hit(int(cfg["damage"])), _facing, float(cfg["knockback"]), float(cfg["launch"]))
 		_play_hit_sound(_attack_id)
 		_spawn_spark(Vector2(target.global_position.x, target.global_position.y - 48.0))
 		_shake = maxf(_shake, 0.6 if kind == &"heavy" else 0.32)
@@ -861,7 +935,7 @@ func _tick_hurt(delta: float) -> void:
 
 
 func take_damage(amount: int, from_global: Vector2) -> void:
-	if _won or _walk_in_active or state == State.DEAD or _now() < _invuln_until:
+	if _won or _walk_in_active or _feigning or state == State.DEAD or _now() < _invuln_until:
 		return
 	health = maxi(0, health - amount)
 	health_changed.emit(health, max_health)
@@ -870,7 +944,7 @@ func take_damage(amount: int, from_global: Vector2) -> void:
 		return
 	state = State.HURT
 	_hurt_timer = 0.26
-	_invuln_until = _now() + 0.5
+	_invuln_until = _now() + HIT_INVULN_TIME * PlayerStats.invuln_scale()
 	var away := signf(global_position.x - from_global.x)
 	if away == 0.0:
 		away = -float(_facing)
@@ -910,6 +984,61 @@ func _die() -> void:
 
 
 # ---------------------------------------------------------------- 表现
+
+## 假死:倒地不动、保持死亡姿势,期间免疫伤害;按任意攻击键起身。
+func feign_death() -> void:
+	if _feigning or state == State.DEAD or _switch_anim:
+		return
+	if state == State.ATTACK:
+		_end_attack()
+	_feigning = true
+	state = State.MOVE
+	_attack_id = &""
+	_hit_window = -1
+	_hit_ids.clear()
+	_buffer_id = &""
+	_pose_lock = 0.0
+	velocity = Vector2.ZERO
+	_skill_active = false
+	_skill_aura.visible = false
+	_fx.visible = false
+	_fx.stop()
+	_sprite.sprite_frames = DEATH_FRAMES
+	_sprite.speed_scale = 1.0
+	_sprite.flip_h = _facing < 0
+	_sprite.play(&"death")
+	_anim = &"death"
+
+
+func _exit_feign() -> void:
+	if not _feigning:
+		return
+	_feigning = false
+	_apply_style_frames()
+	state = State.MOVE
+	_hurt_timer = 0.0
+	_anim = &""
+	_play(&"idle", true)
+	_invuln_until = maxf(_invuln_until, _now() + 0.4)
+
+
+## 技能演出:锁定播放某个动画并进入无敌,持续 seconds 秒(不结算近战伤害)。
+func play_pose(anim: StringName, seconds: float) -> void:
+	if state == State.DEAD or _switch_anim:
+		return
+	if state == State.ATTACK:
+		_end_attack()
+	state = State.MOVE
+	_attack_id = &""
+	_hit_window = -1
+	_hit_ids.clear()
+	_buffer_id = &""
+	_pose_anim = anim
+	_pose_lock = maxf(0.0, seconds)
+	_invuln_until = maxf(_invuln_until, _now() + seconds)
+	_anim = &""
+	_play(anim, true)
+
 
 func _play(anim: StringName, force := false) -> void:
 	if _anim == anim and not force:
@@ -1004,7 +1133,7 @@ func _reflect_projectiles() -> int:
 			continue
 		if proj.is_queued_for_deletion():
 			continue
-		if proj.global_position.distance_to(center) > PARRY_RADIUS:
+		if proj.global_position.distance_to(center) > PARRY_RADIUS * PlayerStats.parry_scale():
 			continue
 		var damage := 16
 		var raw: Variant = proj.get("damage")
@@ -1043,6 +1172,7 @@ func _spawn_reflect_ring() -> void:
 	var ring := REFLECT_RING.instantiate()
 	host.add_child(ring)
 	ring.global_position = global_position + Vector2(0.0, PARRY_CENTER_Y)
+	ring.scale = Vector2.ONE * PlayerStats.parry_scale()
 
 
 ## project.godot 里若没有 parry 动作(被外部工具覆盖时),运行时补上 S 键。

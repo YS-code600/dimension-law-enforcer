@@ -4,6 +4,7 @@ extends Node2D
 
 const BULLET := preload("res://levels/enemies/enemy_bullet.tscn")
 const BOOM := preload("res://levels/combat/tank_boom.tscn")
+const TOKEN_DROP := preload("res://levels/combat/token_drop.gd")
 
 @export var max_health := 150
 @export var speed := 95.0
@@ -101,6 +102,7 @@ func _explode() -> void:
 		var boom := BOOM.instantiate()
 		host.add_child(boom)
 		boom.global_position = global_position + Vector2(0.0, -46.0)
+		TOKEN_DROP.burst(host, global_position + Vector2(0.0, -46.0))
 	queue_free()
 
 
