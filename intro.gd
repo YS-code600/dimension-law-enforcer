@@ -15,6 +15,35 @@ const LINES := [
 	"准备完毕——3、2、1！[color=#ff6b8a]BUG 修复大作战[/color]，开始！",
 ]
 
+## 导出兜底:Godot 把继承场景导出成 .scn 时，实例上覆盖的 PackedStringArray
+## (custom_lines / voice_paths 等) 会在导出包里变空，表现就是 fire_room 前 /
+## 结尾的鲸鱼娘简报退回成 world_main 那六句大肥鱼台词。这里按 header_tag 补回来。
+## 注意:改简报台词时，这里和 whale_briefing.tscn / final_briefing.tscn 要一起改
+## (导出后的游戏只认这里的文本)。
+const BRIEFINGS := {
+	"// BUG SOURCE": {
+		"lines": [
+			"BUG源就在附近了，嘿嘿。",
+			"取出BUG源，作者你的游戏就会恢复正常啦。",
+		],
+		"voices": [
+			"res://audio/voice/whale_01.wav",
+			"res://audio/voice/whale_02.wav",
+		],
+		"portrait": "res://picture/whale_girl.png",
+		"speaker": "鲸鱼娘",
+		"next": "res://levels/void_room.tscn",
+		"loading": "> 正在进入黑房间…",
+	},
+	"// FINAL BUG": {
+		"lines": ["这就是最后的[color=#ff6b8a]bug[/color]了，上吧！"],
+		"voices": ["res://audio/voice/final_01.wav"],
+		"portrait": "res://picture/dafeiyu_grin.png",
+		"next": "res://levels/fire_room.tscn",
+		"loading": "> 正在进入火雨房间…",
+	},
+}
+
 ## 自定义简报：留空时使用开场六句；最终战简报只覆盖一句。
 @export var custom_lines: PackedStringArray = []
 @export var next_scene := "res://levels/game.tscn"
@@ -61,6 +90,7 @@ var _music_player: AudioStreamPlayer
 
 
 func _ready() -> void:
+	_apply_briefing_fallback()
 	_lines = Array(custom_lines) if not custom_lines.is_empty() else Array(LINES)
 	var brand_sub := get_node_or_null("Brand/BrandSub") as Label
 	if brand_sub != null:
@@ -92,6 +122,26 @@ func _ready() -> void:
 	dialog.modulate.a = 0.0
 	_play_entrance()
 	_start_intro_line()
+
+
+## 导出包里继承场景的数组覆盖会丢，用 header_tag 找回这份简报该有的台词。
+func _apply_briefing_fallback() -> void:
+	if not custom_lines.is_empty():
+		return
+	var data: Dictionary = BRIEFINGS.get(header_tag, {})
+	if data.is_empty():
+		return
+	custom_lines = PackedStringArray(data.get("lines", []))
+	if voice_paths.is_empty():
+		voice_paths = PackedStringArray(data.get("voices", []))
+	if portrait_source_path.is_empty():
+		portrait_source_path = String(data.get("portrait", portrait_source_path))
+	if speaker_name.is_empty():
+		speaker_name = String(data.get("speaker", speaker_name))
+	if next_scene.is_empty():
+		next_scene = String(data.get("next", next_scene))
+	if loading_text.is_empty():
+		loading_text = String(data.get("loading", loading_text))
 
 
 ## 等黑幕淡入后再开口，避免第一句被开场黑场盖掉。

@@ -21,7 +21,6 @@ Music="*res://audio/music_manager.gd"
 Tokens="*res://scripts/token_counter.gd"
 PlayerStats="*res://scripts/player_stats.gd"
 BossProgress="*res://scripts/boss_progress.gd"
-McpRuntime="*res://addons/godot-mcp/mcp_runtime.gd"
 
 [display]
 
